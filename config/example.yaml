@@ -1,0 +1,24 @@
+# Model per role (rule 7). PLACEHOLDERS until docs/model-research.md and the D4 comparison:
+# the choice is made with evals and recorded in an ADR `model-choice`, never here by habit.
+# Copy to config/local.yaml (gitignored) to override.
+llm:
+  screening:     # cheap; may end up as no LLM at all (CPV + keywords)
+    provider: anthropic
+    model: claude-haiku-5-5
+    usd_per_mtok_in: "0.10"
+    usd_per_mtok_out: "0.50"
+  extraction:    # structured output over long tender documents; prompt caching
+    provider: anthropic
+    model: claude-haiku-5-5
+    usd_per_mtok_in: "0.10"
+    usd_per_mtok_out: "0.50"
+  decision:      # go/no-go with a confidence, only for what the rules did not settle
+    provider: anthropic
+    model: claude-sonnet-5-5
+    usd_per_mtok_in: "3"
+    usd_per_mtok_out: "15"
+  coach:         # edits the extraction prompt from eval failures (2nd pass of the coach)
+    provider: anthropic
+    model: claude-sonnet-5-5
+    usd_per_mtok_in: "3"
+    usd_per_mtok_out: "15"

@@ -1,0 +1,46 @@
+[project]
+name = "licita"
+version = "0.1.0"
+description = "Public-tender scout for small companies: PLACSP tenders matched to a company profile, go/no-go with cited clauses."
+readme = "README.md"
+authors = [{ name = "Pablo Sala" }]
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.28.1",
+    "langgraph>=1.2.22",
+    "pydantic>=2.14.3",
+    "pyyaml>=6.0.3",
+    "tzdata>=2026.6",
+]
+
+[project.scripts]
+licita = "licita.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.13.0,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4.1",
+    "pytest>=9.2.0",
+    "ruff>=0.17.5",
+    "types-pyyaml>=6.0.12.20261113",
+]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+
+[tool.mypy]
+strict = true
+plugins = ["pydantic.mypy"]
+files = ["src", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q -m 'not live'"
+markers = ["live: calls a real model or API; run on purpose with -m live"]
+filterwarnings = ["error"]

@@ -1,0 +1,25 @@
+# Secrets and operator notes: never committed
+.env
+private/
+config/local.yaml
+credentials*.json
+*.key
+*.pem
+
+# Downloaded public data (re-fetchable) and run outputs
+data/raw/
+data/pliegos/
+runs/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+dist/
+
+# Front
+web/node_modules/
+web/dist/

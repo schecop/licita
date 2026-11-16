@@ -1,0 +1,23 @@
+# Fictional company: every value here is invented. Licita matches public PLACSP tenders against it.
+name: Dades i Codi Consulting, S.L.
+city: Barcelona
+summary: >
+  Pyme de 18 personas: desarrollo de software a medida, ingeniería y analítica de datos
+  (dbt, cloud en AWS y Azure), cuadros de mando y soporte de aplicaciones para la administración.
+cpv_prefixes:            # CPV 72: IT services (consulting, software, data, support)
+  - "72200000"           # programación y consultoría de software
+  - "72300000"           # servicios relacionados con datos
+  - "72260000"           # servicios relacionados con el software
+  - "72600000"           # apoyo informático y consultoría
+budget_eur:              # contract value without VAT the company can take on
+  min: 15000
+  max: 600000
+regions: [Cataluña, Comunidad de Madrid, Comunidad Valenciana, Aragón, Estatal]
+solvency:
+  annual_turnover_eur: 1400000     # best of the last 3 years
+  staff: 18
+  similar_contracts_last_3y_eur: 900000
+  certifications: [ISO 9001, ISO 27001]
+  ens_level: medio                 # Esquema Nacional de Seguridad
+  classification: null             # no state classification (only required above thresholds)
+languages: [es, ca, en]
