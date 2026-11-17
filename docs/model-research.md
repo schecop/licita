@@ -11,13 +11,19 @@ No default model. Each role gets the model that wins on its own job, on quality,
 - **Citations are the product.** A go/no-go without a document + page + quote is not auto-accepted. So "how the citation is produced" is a design choice, not a detail (see Open decision below).
 - **Spanish only** (pliegos are in Spanish; Catalan tenders exist on the Catalan platform, out of scope). Catalan quality stops being a criterion.
 
-## Decided: where the citations come from (option A, Pablo 2026-11-16)
+## Decided: where the citations come from (option A, one mechanism for every model; Pablo 2026-11-16, revised the same evening)
+
+**Own RAG, the same chunks and the same citation format for every model.** We parse the PDFs, chunk with page numbers, retrieve hybrid (BM25 + embeddings, reranker if it pays), and send the top chunks with ids. Every model returns, per field, the value plus `chunk_id` + verbatim quote in structured output. **Code checks every quote against the chunk text**; a field whose quote does not match counts as uncited and cannot be auto-accepted.
+
+Why one mechanism: the first version of A used Claude's native `search_result` citations ([search results](https://platform.claude.com/docs/en/build-with-claude/search-results.md), [citations](https://platform.claude.com/docs/en/build-with-claude/citations)) and was decided before the full candidate list. With candidates from 3 families, mixing citation mechanisms would confound the model comparison: a difference could come from the mechanism, not the model.
+
+**Native citations become a separate experiment (D4, one model):** Haiku 5.5 with `search_result` blocks vs the same Haiku with JSON `chunk_id` + quote, on the labelled set: invalid-quote rate and field accuracy. Adopted for Claude only if the number justifies it. ADR when D3 builds extraction.
 
 | Option | How | For | Against |
 |---|---|---|---|
-| **A. Own RAG + Claude `search_result` blocks** (recommended) | We parse the PDFs, chunk with page numbers, retrieve hybrid (BM25 + embeddings, reranker if it pays), and pass the top chunks as `search_result` content blocks; Claude returns citations pointing at our chunks ([search results](https://platform.claude.com/docs/en/build-with-claude/search-results.md), [citations](https://platform.claude.com/docs/en/build-with-claude/citations)) | Keeps the week's lead skill (hybrid RAG) real and measurable; citations checked by code against our chunk text; works with any provider if we ask for chunk ids ourselves | We own PDF parsing (tables, scanned annexes) |
-| B. Whole PDF to Claude with citations on | Send each PDF as a document block with `citations: enabled`; Claude extracts the text and cites page ranges | Least code; page numbers for free | No retrieval to learn or measure; Claude-only; scanned PDFs are not citable (no image citations); full document on every call (caching helps) |
-| C. Own RAG, citations by prompt | Model returns chunk ids in JSON; code checks the quote exists | Provider-agnostic | More hallucinated quotes to catch; reinvents what A gives |
+| **A. Own RAG, `chunk_id` + quote in JSON for every model** (chosen) | As above | Keeps the week's lead skill (hybrid RAG) real and measurable; provider-agnostic; fair comparison | We own PDF parsing (tables, scanned annexes); invented quotes to catch (code does) |
+| A'. Own RAG + Claude `search_result` blocks | Same chunks as content blocks; Claude cites them natively | Possibly fewer invalid quotes | Claude-only: confounds the cross-family comparison. Kept as the D4 experiment |
+| B. Whole PDF to Claude with citations on | Each PDF as a document block with `citations: enabled` | Least code; page numbers for free | No retrieval to learn or measure; Claude-only; scanned PDFs not citable; full document on every call |
 
 **Baseline zero either way:** the whole pliego in a cached prompt, no retrieval (like clinic-desk's "all policies in the prompt"). If extraction is as accurate that way, retrieval is not earning its place, and the README says so.
 
@@ -32,17 +38,29 @@ No default model. Each role gets the model that wins on its own job, on quality,
 | **Embeddings** | Chunks of the pliegos and field queries, in Spanish | per chunk once (cached) + per query | Spanish retrieval on legal wording |
 | **Reranker** | Reorders ~20-50 candidate chunks per field | 1 per field | Spanish; only kept if it beats hybrid without it |
 
+## Shortlist hypothesis (Pablo, 2026-11-16)
+
+Quality-cost favourites going into the evals; the verification calls below can still remove one.
+
+| Role | Favourites | Diagnostic / reserve only |
+|---|---|---|
+| Extraction | Haiku 5.5, GPT-6 Luna | GPT-6.1 Terra (cheap ceiling); Sonnet 5.5 (diagnostic ceiling, ~5 tenders) |
+| Go / no-go | Haiku 5.5, GPT-6 Luna, GPT-6.1 Terra, Gemini 3.8 Flash | — |
+| Coach | Sonnet 5.5, GPT-6.1 Terra | — |
+| Any role | — | GPT-6.1 Sol, Gemini 4 Argon: only if > ~$5 remains after D4 |
+
 ## Extraction
 
 | Model | Role in the test | Price in / out per 1M (standard · batch) | What it must show | What rules it out |
 |---|---|---|---|---|
-| **Claude Haiku 5.5** | Main | $0.10 / $0.50 (≤100k prompt) · batch $0.05 / $0.25 · cache read $0.01 | Field accuracy close to Sonnet on the labelled set; quotes that match the chunk text; schema valid every time | Accuracy gap to Sonnet beyond the spread between repeats |
-| **GPT-6 Luna** | Main rival, same price | $0.10 / $0.50 · batch $0.05 / $0.25 · cache read $0.01; 1M context, higher rate above 272k (third-party, citing OpenAI's page; released 2026-09-22) | Matches or beats Haiku on field accuracy and quote fidelity at the same price | Structured outputs unconfirmed on its model page: check first; invented quotes |
-| **Gemini 3.8 Flash** | Other family, mid price | $0.75 / $3.75 until 2026-12-31 (then $1.50 / $7.50) · batch $0.375 / $1.875 · cache read $0.075 (third-party) | Its accuracy gain over the cheap pair justifies ~7× the price. Won clinic-desk's judge calibration (92% agreement, the most stable between runs) and supports JSON-schema output | Thinking tokens bill as output: measure, don't assume; 503s under high demand in clinic-desk (11-13) |
-| **Claude Sonnet 5.5** | Ceiling | $2 / $10 · batch $1 / $5 · cache read $0.10 | Whether the gap justifies 20× the price on the hardest fields (solvency, award weights) | — |
+| **Claude Haiku 5.5** | Main | $0.10 / $0.50 (≤100k prompt) · batch $0.05 / $0.25 · cache read $0.01 | Field accuracy close to the ceilings on the labelled set; quotes that match the chunk text; schema valid every time | Accuracy gap to Terra/Sonnet beyond the spread between repeats |
+| **GPT-6 Luna** | Main rival, same price | $0.10 / $0.50 · batch $0.05 / $0.25 · cache read $0.01; 1M context, higher rate above 272k (third-party, citing OpenAI's page; released 2026-09-22) | Matches or beats Haiku on field accuracy and quote fidelity at the same price | Structured outputs unconfirmed on its model page: one verification call first; invented quotes |
+| **GPT-6.1 Terra** | Cheap ceiling | $1 / $5 (third-party; released 2026-10-26) | How much a 10× dearer model gains on the hardest fields (solvency, award weights) | Tools need the Responses API: check structured output on Chat Completions with one call (our OpenAI-compatible adapter uses Chat Completions) |
+| **Claude Sonnet 5.5** | **Diagnostic ceiling only**, not a production candidate | $2 / $10 · batch $1 / $5 · cache read $0.10 | Run on ~5 tenders (~$0.3) to tell model errors from prompt/retrieval errors: if Sonnet also misses a field, the fault is upstream | — |
 
-- **How citations work for non-Claude models (option A, chosen by Pablo 2026-11-16):** `search_result` blocks are a Claude API feature. For GPT-6 Luna and Gemini, the adapter renders the same chunks with ids and asks for `chunk_id` + quote per field in the schema. **Every quote is checked by code against the chunk text, for every model,** so the comparison is fair and a native-citation model gets no free pass.
-- **Dropped from the shortlist:** *Gemini 3.5 Flash-Lite* ($0.30 / $2.50: dearer than Luna and Haiku, no reason to expect better extraction); *Mistral Small 4* (EU lane only matters for private data; tenders are public); *GPT-5.4 mini* (superseded for this job by Luna at ~1/7 the price).
+- **Citations:** one mechanism for every model, see the section above. **Every quote is checked by code against the chunk text, for every model.**
+- **Dropped from the shortlist:** *Gemini 3.8 Flash* for extraction (~7× Haiku's price; kept for the decision, where it reads ~3k tokens); *Gemini 3.6 Flash* (older than 3.8 Flash and dearer at standard price); *Gemini 3.5 Flash-Lite* ($0.30 / $2.50: dearer than Luna and Haiku, no reason to expect better extraction); *Mistral Small 4* (EU lane only matters for private data; tenders are public); *GPT-5.4 mini* (superseded for this job by Luna at ~1/7 the price).
+- **Reserve ceilings, only if > ~$5 remains after D4:** *GPT-6.1 Sol* ($2 / $10, third-party); *Gemini 4 Argon* ($2 / $10 until 2026-11-30, then $4 / $20, third-party; access unclear: test with one call).
 
 - **Haiku 5.5 above 100k tokens costs 5×** ($0.50 / $2.50). Retrieval keeps prompts well under it; the whole-pliego baseline may cross it on big tenders, which is itself a finding for the cost table ([Anthropic pricing](https://docs.anthropic.com/en/docs/about-claude/pricing), [pricingsaas diff](https://pricingsaas.com/companies/anthropic.api/diffs/2026D281); the 100k break point is from third-party rate cards, older docs say 200k: check the official page before the cost table goes in the README).
 - **Batch stacks with caching** at Anthropic ([pricing](https://docs.anthropic.com/en/docs/about-claude/pricing)). Within one tender the PCAP/PPT chunks repeat across the field calls: put them first, the field question last.
@@ -52,17 +70,19 @@ No default model. Each role gets the model that wins on its own job, on quality,
 
 | Model | Role | Price | What it must show |
 |---|---|---|---|
-| **Claude Sonnet 5.5** | Main | $2 / $10 · batch $1 / $5 | Correct go/no-go on the labelled set; confidence that separates right from wrong (the cascade needs ≥95% precision above a threshold that still auto-accepts a useful share) |
-| **Claude Haiku 5.5** | Cheaper alternative | $0.10 / $0.50 | If its confidence is as well calibrated, it wins: the decision only reads ~2k tokens of extracted fields |
-| **GPT-6 Luna** | Other family, cheap | $0.10 / $0.50 | Calibration vs Haiku at the same price |
-| **Gemini 3.8 Flash** | Other family, mid | $0.75 / $3.75 (intro) | Calibration vs Sonnet at ~1/3 the price; was the most stable judge between identical runs in clinic-desk, which matters for a threshold |
+| **Claude Haiku 5.5** | Cheap | $0.10 / $0.50 | Correct go/no-go on the labelled set; confidence that separates right from wrong (the cascade needs ≥95% precision above a threshold that still auto-accepts a useful share). The decision only reads ~2-3k tokens of extracted fields |
+| **GPT-6 Luna** | Cheap, other family | $0.10 / $0.50 | Calibration vs Haiku at the same price |
+| **GPT-6.1 Terra** | Mid | $1 / $5 (third-party) | Whether 10× the price buys a better-calibrated confidence (more auto-accepted at ≥95%) |
+| **Gemini 3.8 Flash** | Mid, third family | $0.75 / $3.75 (intro, third-party) | Calibration vs Terra; was the most stable judge between identical runs in clinic-desk, which matters for a threshold |
+
+- **Sonnet 5.5 left the decision shortlist** (Pablo, 2026-11-16): at $2 / $10 it only earns a place if the cheaper four all fail calibration.
 
 - **Most no-gos never reach a model:** deterministic rules decide the plain cases (CPV, budget, deadline, missing certification). The decision model only sees what the rules leave open.
 - **Confidence:** self-reported confidence is the cheap option; agreement across 3 samples is the more honest one at 3× the cost. Decide on D4 with the data.
 
 ## Coach (2nd pass, rewritten)
 
-Same shortlist as clinic-desk: **Sonnet 5.5** main ($2 / $10), Opus 5.5 only as a one-off comparison if budget remains. The cost is in the extraction re-runs each iteration triggers, not in the coach's own calls. **No batch inside the coach loop:** each keep/rollback waits for the scores.
+**Sonnet 5.5** main ($2 / $10), **GPT-6.1 Terra** as the alternative ($1 / $5). **Opus dropped** (Pablo, 2026-11-16): too expensive for a $15 cap. The cost is in the extraction re-runs each iteration triggers, not in the coach's own calls. **No batch inside the coach loop:** each keep/rollback waits for the scores.
 
 ## Embeddings (Spanish)
 
@@ -100,8 +120,9 @@ Assumptions: screening by code (free); extraction 5 calls × ~8k retrieved token
 | Setup | Extraction | Decision | **Per tender** | **Per eval pass** (20 tenders × 2 repeats) |
 |---|---|---|---|---|
 | Haiku + Haiku, standard | $0.0055 | $0.0006 | **~$0.006** | **~$0.25** |
-| Haiku + Sonnet, standard | $0.0055 | $0.011 | **~$0.017** | **~$0.67** |
-| Haiku + Sonnet, batch (nightly) | $0.0028 | $0.0055 | **~$0.008** | n/a (evals are not batched in the coach loop) |
+| Haiku + Terra, standard | $0.0055 | $0.0055 | **~$0.011** | **~$0.44** |
+| Haiku + Terra, batch (nightly, if Terra has 50% batch) | $0.0028 | $0.0028 | **~$0.006** | n/a (evals are not batched in the coach loop) |
+| Sonnet diagnostic (extraction, ~5 tenders once) | ~$0.06 | — | — | ~$0.3 total |
 | Whole-pliego baseline, Haiku, 50k tokens × 5 calls, cached | ~$0.006-0.03 (cache hit vs miss) | — | measured on D4 | — |
 
 Daily production for the fictional company: ~5 open IT tenders a day → **~$0.05-0.10 a day**.
@@ -111,10 +132,11 @@ Daily production for the fictional company: ~5 open IT tenders a day → **~$0.0
 | Item | Estimate |
 |---|---|
 | Smoke runs on 2-3 real tenders, a few times | $0.5 |
-| Extraction comparison: Haiku, Luna, Gemini 3.8 Flash × 20 tenders × 2 repeats; Sonnet only on the fields the others miss | $2-3 |
+| Extraction comparison: Haiku, Luna × 20 tenders × 2 repeats; Terra × 20 × 1; Sonnet diagnostic on ~5 | $1.5-2.5 |
+| Native-citation experiment (Haiku, `search_result` vs JSON) | < $0.3 |
 | Retrieval comparison (embeddings, optional reranker) | < $0.2 |
 | Whole-pliego baseline | $0.5-1 |
-| Decision comparison + cascade threshold (2-3 models, 20 tenders, 3 samples for confidence) | $1-2 |
+| Decision comparison + cascade threshold (4 models, 20 tenders, 3 samples for confidence) | $1-2 |
 | Coach run (5 iterations; extraction re-runs on the visible half, held-out at the end) | $2-3 |
 | Daily runs for the deployed demo (D6-D7) | $0.5 |
 | **Total** | **~$7-10**, leaving ~$5 of margin |
@@ -123,14 +145,16 @@ Daily production for the fictional company: ~5 open IT tenders a day → **~$0.0
 
 ## Constraints
 
-- **Keys:** new for this project: Anthropic, OpenAI (GPT-6 Luna and embeddings) and Gemini (3.8 Flash; gemini-embedding if it stays). No Mistral key unless OCR is needed.
+- **Keys:** new for this project: Anthropic, OpenAI (GPT-6 Luna, GPT-6.1 Terra and embeddings) and Gemini (3.8 Flash; gemini-embedding if it stays). No Mistral key unless OCR is needed.
 - **Data:** all tenders are public; the company is fictional. Free tiers that train on data are acceptable.
 - **PLACSP access:** the ATOM feed downloads by script; pliego downloads are rejected for scripts but work in Pablo's browser (2026-11-16). The ~20 labelled tenders come from the browser; the daily pipeline's route is open (see PROGRESS).
 
 ## Open items
 
-- [x] Citations: option A (Pablo, 2026-11-16).
-- [ ] Confirm GPT-6 Luna on OpenAI's model page: id, price, structured outputs, Chat Completions vs Responses.
+- [x] Citations: option A, one mechanism for every model (Pablo, 2026-11-16, revised). Native `search_result` as a D4 experiment.
+- [ ] Confirm GPT-6 Luna on OpenAI's model page: id, price, structured outputs, Chat Completions vs Responses. One verification call.
+- [ ] Confirm GPT-6.1 Terra: price, batch, structured output on Chat Completions (tools need Responses). One verification call.
+- [ ] Gemini 4 Argon access: one call, only if the reserve is used.
 - [ ] Confirm Gemini 3.8 Flash price and batch on the official pricing page (all figures above are third-party).
 - [ ] Measure real pliego sizes (tokens per PCAP + PPT) on the first 5 tenders and redo the cost table; update `PER_TENDER` in `src/licita/budget.py`.
 - [ ] Confirm on official pages: Haiku 5.5 long-context break point (100k vs 200k), text-embedding-3-small and gemini-embedding prices, Gemini 3.5 Flash-Lite price.
