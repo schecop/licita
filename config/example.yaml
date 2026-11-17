@@ -14,11 +14,22 @@ llm:
     usd_per_mtok_out: "0.50"
   decision:      # go/no-go with a confidence, only for what the rules did not settle
     provider: anthropic
-    model: claude-sonnet-5-5
-    usd_per_mtok_in: "3"
-    usd_per_mtok_out: "15"
+    model: claude-haiku-5-5
+    usd_per_mtok_in: "0.10"
+    usd_per_mtok_out: "0.50"
   coach:         # edits the extraction prompt from eval failures (2nd pass of the coach)
     provider: anthropic
     model: claude-sonnet-5-5
-    usd_per_mtok_in: "3"
-    usd_per_mtok_out: "15"
+    usd_per_mtok_in: "2"
+    usd_per_mtok_out: "10"
+
+placsp:
+  feed_url: https://contrataciondelestado.es/sindicacion/sindicacion_643/licitacionesPerfilesContratanteCompleto3.atom
+  cache_dir: data/raw/atom      # every page cached; never downloaded twice
+  db_path: data/licita.db
+  throttle_seconds: 2           # between requests to PLACSP (minimum 1)
+  max_pages: 20                 # a page is ~500 entries (~15 MB); a weekday is ~7 pages
+
+rules:
+  profile_path: data/company/profile.yaml
+  min_days_to_deadline: 5       # fewer days left than this: no time to prepare a bid

@@ -30,8 +30,29 @@ class ModelChoice(_Strict):
     usd_per_mtok_out: Decimal = Field(ge=0)
 
 
+class PlacspConfig(_Strict):
+    """Feed ingestion. PLACSP is a public service: cache everything, throttle the rest."""
+
+    feed_url: str = (
+        "https://contrataciondelestado.es/sindicacion/sindicacion_643/"
+        "licitacionesPerfilesContratanteCompleto3.atom"
+    )
+    cache_dir: Path = Path("data/raw/atom")
+    db_path: Path = Path("data/licita.db")
+    throttle_seconds: float = Field(default=2.0, ge=1.0)
+    max_pages: int = Field(default=20, ge=1)
+
+
+class RulesConfig(_Strict):
+    profile_path: Path = Path("data/company/profile.yaml")
+    # fewer days than this to the submission deadline: not enough time to prepare a bid
+    min_days_to_deadline: int = Field(default=5, ge=0)
+
+
 class AppConfig(_Strict):
     llm: dict[str, ModelChoice]
+    placsp: PlacspConfig = PlacspConfig()
+    rules: RulesConfig = RulesConfig()
 
 
 def load_config(path: Path = Path("config/local.yaml")) -> AppConfig:

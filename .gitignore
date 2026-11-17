@@ -9,6 +9,7 @@ credentials*.json
 # Downloaded public data (re-fetchable) and run outputs
 data/raw/
 data/pliegos/
+data/*.db
 runs/
 
 # Python
