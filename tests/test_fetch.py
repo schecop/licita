@@ -7,7 +7,7 @@ import httpx
 import pytest
 
 from licita.placsp.feed import MADRID
-from licita.placsp.fetch import FeedFetcher
+from licita.placsp.fetch import FeedFetcher, NotAFeedError
 from tests.conftest import HEAD, PAGE2
 
 FEED = "https://example.test/feed/head.atom"
@@ -85,5 +85,27 @@ def test_http_error_raises_and_caches_nothing(tmp_path: Path) -> None:
         feed_url=FEED,
     )
     with pytest.raises(httpx.HTTPStatusError):
+        fetcher.walk_since(SINCE, TODAY)
+    assert list(tmp_path.iterdir()) == []
+
+
+# what PLACSP answered on 18 Nov 2026 during maintenance: 200, well-formed XML, not a feed
+WAF_PAGE = (
+    b"<html><title>Error</title><body>The Web Application Firewall has denied your transaction "
+    b"due to a violation of policy.<P/>You may want to clear the cookies in your browser."
+    b"</body></html>"
+)
+
+
+@pytest.mark.parametrize("body", [WAF_PAGE, b"Request Rejected", b""])
+def test_a_200_that_is_not_a_feed_raises_and_caches_nothing(tmp_path: Path, body: bytes) -> None:
+    fetcher = FeedFetcher(
+        client=httpx.Client(
+            transport=httpx.MockTransport(lambda r: httpx.Response(200, content=body))
+        ),
+        cache_dir=tmp_path,
+        feed_url=FEED,
+    )
+    with pytest.raises(NotAFeedError, match="did not return an ATOM feed"):
         fetcher.walk_since(SINCE, TODAY)
     assert list(tmp_path.iterdir()) == []

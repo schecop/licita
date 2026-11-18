@@ -26,6 +26,13 @@ def test_tender_fields_come_from_codice(head: FeedPage) -> None:
     assert len(t.award_criteria) == 3
 
 
+def test_estimated_value_is_read_apart_from_the_budget(head: FeedPage) -> None:
+    # valor estimado includes the extension: double the budget here. Solvency refers to it.
+    t = next(t for t in head.tenders if "Opentext" in t.title)
+    assert t.estimated_value_eur == Decimal("177677.78")
+    assert t.budget_eur == Decimal("88838.89")
+
+
 def test_lots_carry_their_own_budget(head: FeedPage) -> None:
     t = next(t for t in head.tenders if t.budget_eur == Decimal("54331470.4"))
     assert [lot.budget_eur for lot in t.lots] == [Decimal("25755378.14"), Decimal("28576092.26")]

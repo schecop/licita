@@ -58,7 +58,11 @@ class Tender(_Frozen):
     )  # CODICE ContractCode: 1 supplies, 2 services, 3 works, 50 patrimonial
     buyer: str | None
     url: str | None  # human page on PLACSP
-    budget_eur: Decimal | None  # whole contract, without VAT
+    budget_eur: Decimal | None  # whole contract, without VAT (presupuesto base de licitación)
+    # valor estimado: budget plus extensions and modifications, without VAT. Solvency thresholds
+    # in the pliegos usually refer to this, not to the budget. Default None: rows stored before
+    # the field existed still load.
+    estimated_value_eur: Decimal | None = None
     cpvs: list[str]
     nuts: str | None  # place of execution, NUTS code (ES51x = Cataluña)
     deadline: datetime | None  # tender submission deadline, Madrid time
@@ -71,6 +75,7 @@ class FeedPage(_Frozen):
     tenders: list[Tender]
     deleted: list[str]  # entry ids of tombstoned entries
     next_url: str | None
+    skipped: int = 0  # <entry> elements that did not parse into a Tender (counted, not hidden)
 
     @property
     def oldest(self) -> datetime | None:
@@ -172,6 +177,9 @@ def _tender(entry: ET.Element) -> Tender | None:
         ),
         url=link.get("href") if link is not None else None,
         budget_eur=_decimal(_text(project, f"{CAC}BudgetAmount/{CBC}TaxExclusiveAmount")),
+        estimated_value_eur=_decimal(
+            _text(project, f"{CAC}BudgetAmount/{CBC}EstimatedOverallContractAmount")
+        ),
         cpvs=_cpvs(project),
         nuts=_text(project, f"{CAC}RealizedLocation/{CBC}CountrySubentityCode"),
         deadline=_deadline(folder),
@@ -183,10 +191,13 @@ def _tender(entry: ET.Element) -> Tender | None:
 
 def parse_page(xml: bytes) -> FeedPage:
     root = ET.fromstring(xml)
-    tenders = [t for e in root.iterfind(f"{ATOM}entry") if (t := _tender(e)) is not None]
+    entries = root.findall(f"{ATOM}entry")
+    tenders = [t for e in entries if (t := _tender(e)) is not None]
     deleted = [ref for d in root.iterfind(f"{TOMB}deleted-entry") if (ref := d.get("ref"))]
     next_url = next(
         (link.get("href") for link in root.iterfind(f"{ATOM}link") if link.get("rel") == "next"),
         None,
     )
-    return FeedPage(tenders=tenders, deleted=deleted, next_url=next_url)
+    return FeedPage(
+        tenders=tenders, deleted=deleted, next_url=next_url, skipped=len(entries) - len(tenders)
+    )

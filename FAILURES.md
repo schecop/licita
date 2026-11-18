@@ -4,7 +4,7 @@ Every real failure, newest first: symptom, how it was found (trace, eval, test),
 
 **Classes:** ingestion · PDF parsing · retrieval · extraction · rules · model · labels · front
 
-**Summary by class:** ingestion 1 · rules 1
+**Summary by class:** ingestion 3 · rules 1
 
 <!-- Template:
 ## YYYY-MM-DD · <short title>
@@ -14,6 +14,20 @@ Every real failure, newest first: symptom, how it was found (trace, eval, test),
 - **Fix:**
 - **Regression test / eval case:**
 -->
+
+## 2026-11-18 · A maintenance page would have been cached as the day's feed
+- **Symptom:** PLACSP went into maintenance and answered every request, the ATOM feed included, with `200 OK` and a 187-byte HTML error page from its firewall. That page is well-formed XML, so `parse_page` read it as an empty feed page: 0 entries, no `next` link, walk "complete". `licita ingest` would have cached it as `<today>-head.atom`, and every later ingest that day would have read the error page from the cache. The new audit did not flag it either (no open tenders, no shares to compute).
+- **Found by:** manual probe of the feed while the web page was down (no ingest had run yet, nothing was cached).
+- **Root cause (ingestion):** trusting the HTTP status. A 200 was taken as "this is the feed", and the parser is lenient by design (missing elements are None, not errors).
+- **Fix:** `FeedFetcher` checks the root element is an Atom `<feed>` before caching, and raises `NotAFeedError` otherwise. `licita ingest` reports it as a possible maintenance window, stores nothing and exits 1. The audit warns on pages with no entries at all.
+- **Regression test / eval case:** `test_a_200_that_is_not_a_feed_raises_and_caches_nothing` (tests/test_fetch.py, with the real WAF page), `test_ingest_during_maintenance_says_so_and_stores_nothing` (tests/test_cli.py), `test_a_page_with_no_entries_is_flagged` (tests/test_audit.py).
+
+## 2026-11-18 · Valor estimado not read: solvency would be checked against the wrong amount
+- **Symptom:** the parser read only the budget (`TaxExclusiveAmount`). The feed also carries `EstimatedOverallContractAmount`, the valor estimado (budget plus extensions and modifications), which is what solvency clauses in the pliegos usually refer to. In the Policía tender it is double the budget (€177,678 vs €88,839).
+- **Found by:** a field-coverage audit over the 14 cached pages (6,293 entries), while asking how we know the feed is parsed right.
+- **Root cause (ingestion):** the parser was written from one reference entry and the fields the rules needed; nothing compared it with what the feed actually offers, and the existing tests take their expected values from the same XML, so a missing or misread field could not fail them.
+- **Fix:** `Tender.estimated_value_eur` (present in 1,514/1,514 open tenders). Also `licita audit-feed` and an audit after every ingest: warns when a field goes missing in more open tenders than its baseline allows (the signature of a wrong XPath, which returns None silently) or when an entry does not parse (`FeedPage.skipped`). And a golden set of 11 varied tenders whose expected values are read on the PLACSP web page, not the XML.
+- **Regression test / eval case:** `test_estimated_value_is_read_apart_from_the_budget` (tests/test_feed.py), tests/test_audit.py, tests/test_golden.py (pending the manual values).
 
 ## 2026-11-17 · Property auctions in the candidate inbox
 - **Symptom:** the first real `licita inbox` listed three TGSS "subasta pública ... enajenación de inmuebles" as candidates for an IT consultancy.

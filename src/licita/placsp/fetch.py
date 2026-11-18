@@ -9,6 +9,7 @@ the file name is the cache key. The head page changes all day, so it is cached o
 from __future__ import annotations
 
 import time
+import xml.etree.ElementTree as ET
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date, datetime
@@ -19,6 +20,23 @@ import httpx
 from licita.placsp.feed import FeedPage, parse_page
 
 USER_AGENT = "licita/0.1 (public-tender research prototype)"
+ATOM_FEED = "{http://www.w3.org/2005/Atom}feed"
+
+
+class NotAFeedError(RuntimeError):
+    """PLACSP answered 200 with something other than an ATOM feed (maintenance, WAF page)."""
+
+
+def _check_is_atom(url: str, body: bytes) -> None:
+    # During maintenance PLACSP answers 200 with a small HTML error page that happens to be
+    # well-formed XML: it parses into an empty page and would be cached as the day's head.
+    try:
+        root = ET.fromstring(body)
+    except ET.ParseError:
+        root = None
+    if root is None or root.tag != ATOM_FEED:
+        snippet = body[:200].decode("utf-8", "replace").replace("\n", " ")
+        raise NotAFeedError(f"{url} did not return an ATOM feed (not cached): {snippet}")
 
 
 @dataclass
@@ -48,6 +66,7 @@ class FeedFetcher:
         response = self.client.get(url, headers={"User-Agent": USER_AGENT}, timeout=60)
         self._last_request = time.monotonic()
         response.raise_for_status()
+        _check_is_atom(url, response.content)  # before caching: never cache an error page
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(response.content)
         walk.downloaded += 1

@@ -1,0 +1,147 @@
+# Golden values read by hand from each tender's PLACSP web page (not from the XML).
+# A key set to null means the page shows nothing for it. Set checked_on when done.
+# deadline: 'YYYY-MM-DD HH:MM' Madrid time.
+# award_criteria: [[start of the description, weight]].
+- entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20913966
+  why: 'IT candidate (Policía, Opentext): the reference case'
+  url: https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&idEvl=RltAOQfSrwKFlFRHfEzEaw%3D%3D
+  checked_on: null
+  status: TODO
+  buyer: TODO
+  budget_eur: TODO
+  estimated_value_eur: TODO
+  deadline: TODO
+  cpvs: TODO
+  nuts: TODO
+  lot_budgets_eur: TODO
+  award_criteria: TODO
+- entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20913952
+  why: 5 lots with different budgets
+  url: https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&idEvl=pbp7tb3yYzXi0Kd8%2Brcp6w%3D%3D
+  checked_on: null
+  status: TODO
+  buyer: TODO
+  budget_eur: TODO
+  estimated_value_eur: TODO
+  deadline: TODO
+  cpvs: TODO
+  nuts: TODO
+  lot_budgets_eur: TODO
+  award_criteria: TODO
+- entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20913957
+  why: lots that repeat the whole budget (source quirk), adjudicated
+  url: https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&idEvl=lA%2FBM27lFcGdkQsA7ROvsg%3D%3D
+  checked_on: null
+  status: TODO
+  buyer: TODO
+  budget_eur: TODO
+  estimated_value_eur: TODO
+  deadline: TODO
+  cpvs: TODO
+  nuts: TODO
+  lot_budgets_eur: TODO
+  award_criteria: TODO
+- entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20914016
+  why: open tender without CPV
+  url: https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&idEvl=F7V0LpRPilkZDGvgaZEVxQ%3D%3D
+  checked_on: null
+  status: TODO
+  buyer: TODO
+  budget_eur: TODO
+  estimated_value_eur: TODO
+  deadline: TODO
+  cpvs: TODO
+  nuts: TODO
+  lot_budgets_eur: TODO
+  award_criteria: TODO
+- entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20934361
+  why: open tender without documents
+  url: https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&idEvl=sN6wHJzuIdGTylGzYmBF9Q%3D%3D
+  checked_on: null
+  status: TODO
+  buyer: TODO
+  budget_eur: TODO
+  estimated_value_eur: TODO
+  deadline: TODO
+  cpvs: TODO
+  nuts: TODO
+  lot_budgets_eur: TODO
+  award_criteria: TODO
+- entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20913951
+  why: patrimonial (type 50)
+  url: https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&idEvl=zPceztgZ7NdrhBlEHQFSKA%3D%3D
+  checked_on: null
+  status: TODO
+  buyer: TODO
+  budget_eur: TODO
+  estimated_value_eur: TODO
+  deadline: TODO
+  cpvs: TODO
+  nuts: TODO
+  lot_budgets_eur: TODO
+  award_criteria: TODO
+- entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20913962
+  why: works (type 3)
+  url: https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&idEvl=Le0i4rnPjnucTfjQf3USOg%3D%3D
+  checked_on: null
+  status: TODO
+  buyer: TODO
+  budget_eur: TODO
+  estimated_value_eur: TODO
+  deadline: TODO
+  cpvs: TODO
+  nuts: TODO
+  lot_budgets_eur: TODO
+  award_criteria: TODO
+- entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20913968
+  why: cancelled (ANUL)
+  url: https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&idEvl=t%2B%2BbGIObHiw%2FbjW6njtWLw%3D%3D
+  checked_on: null
+  status: TODO
+  buyer: TODO
+  budget_eur: TODO
+  estimated_value_eur: TODO
+  deadline: TODO
+  cpvs: TODO
+  nuts: TODO
+  lot_budgets_eur: TODO
+  award_criteria: TODO
+- entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20913949
+  why: resolved (RES), no deadline
+  url: https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&idEvl=uM0VW83eRHE%2B1TMyIiZmzw%3D%3D
+  checked_on: null
+  status: TODO
+  buyer: TODO
+  budget_eur: TODO
+  estimated_value_eur: TODO
+  deadline: TODO
+  cpvs: TODO
+  nuts: TODO
+  lot_budgets_eur: TODO
+  award_criteria: TODO
+- entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20913955
+  why: Cataluña (NUTS ES51x)
+  url: https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&idEvl=1gPFWlDTAS1rSd8H4b2soA%3D%3D
+  checked_on: null
+  status: TODO
+  buyer: TODO
+  budget_eur: TODO
+  estimated_value_eur: TODO
+  deadline: TODO
+  cpvs: TODO
+  nuts: TODO
+  lot_budgets_eur: TODO
+  award_criteria: TODO
+- entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20913994
+  why: award criteria with decimal weights
+  url: https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&idEvl=s5arY%2BVJzy%2FjHF5qKI4aaw%3D%3D
+  checked_on: null
+  status: TODO
+  buyer: TODO
+  budget_eur: TODO
+  estimated_value_eur: TODO
+  deadline: TODO
+  cpvs: TODO
+  nuts: TODO
+  lot_budgets_eur: TODO
+  award_criteria: TODO

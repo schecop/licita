@@ -41,6 +41,19 @@ class PlacspConfig(_Strict):
     db_path: Path = Path("data/licita.db")
     throttle_seconds: float = Field(default=2.0, ge=1.0)
     max_pages: int = Field(default=20, ge=1)
+    # largest share of open tenders allowed to miss each field before the audit warns
+    # (licita.placsp.audit has the baseline these come from)
+    audit_max_missing: dict[str, float] = {
+        "title": 0.01,
+        "buyer": 0.01,
+        "budget_eur": 0.02,
+        "estimated_value_eur": 0.02,
+        "deadline": 0.02,
+        "cpvs": 0.05,
+        "nuts": 0.05,
+        "documents": 0.10,
+        "award_criteria": 0.20,
+    }
 
 
 class RulesConfig(_Strict):

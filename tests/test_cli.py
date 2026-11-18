@@ -79,3 +79,14 @@ def test_ingest_warns_when_the_page_cap_cuts_the_walk(
     cfg = cfg.model_copy(update={"placsp": cfg.placsp.model_copy(update={"max_pages": 1})})
     main(["ingest", "--today", "2026-11-15"], client=_client(), cfg=cfg)
     assert "warning: stopped at max_pages=1" in capsys.readouterr().out
+
+
+def test_ingest_during_maintenance_says_so_and_stores_nothing(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    waf = b"<html><title>Error</title><body>Web Application Firewall<P/></body></html>"
+    client = httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(200, content=waf)))
+    cfg = _cfg(tmp_path)
+    assert main(["ingest", "--today", "2026-11-18"], client=client, cfg=cfg) == 1
+    assert "may be down for maintenance" in capsys.readouterr().out
+    assert not cfg.placsp.cache_dir.exists() or not any(cfg.placsp.cache_dir.iterdir())

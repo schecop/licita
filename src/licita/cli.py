@@ -5,13 +5,15 @@ from __future__ import annotations
 import argparse
 from collections.abc import Sequence
 from datetime import date, datetime, time, timedelta
+from pathlib import Path
 
 import httpx
 
 from licita import budget
 from licita.config import AppConfig, load_config
-from licita.placsp.feed import MADRID
-from licita.placsp.fetch import FeedFetcher
+from licita.placsp.audit import audit
+from licita.placsp.feed import MADRID, parse_page
+from licita.placsp.fetch import FeedFetcher, NotAFeedError
 from licita.profile import load_profile
 from licita.rules import Screening, screen
 from licita.store import Store
@@ -19,7 +21,7 @@ from licita.store import Store
 
 def _ingest(
     cfg: AppConfig, today: date, days: int | None, refresh: bool, client: httpx.Client
-) -> None:
+) -> int:
     """Incremental by default: walk back to the newest update already stored.
 
     An empty store (or --days) walks back to midnight N days ago. A weekday is ~3,000 updates,
@@ -39,7 +41,12 @@ def _ingest(
         max_pages=cfg.placsp.max_pages,
     )
     try:
-        walk = fetcher.walk_since(since, today, refresh=refresh)
+        try:
+            walk = fetcher.walk_since(since, today, refresh=refresh)
+        except NotAFeedError as e:
+            print(f"error: {e}")
+            print("PLACSP may be down for maintenance; nothing was stored.")
+            return 1
         changed = sum(store.upsert(p.tenders) for p in walk.pages)
         deleted = sum(store.mark_deleted(p.deleted) for p in walk.pages)
         entries = sum(len(p.tenders) for p in walk.pages)
@@ -54,8 +61,20 @@ def _ingest(
                 f"warning: stopped at max_pages={cfg.placsp.max_pages}; "
                 f"updates between {since:%Y-%m-%d %H:%M} and {oldest:%Y-%m-%d %H:%M} not read"
             )
+        for w in audit(walk.pages, cfg.placsp.audit_max_missing).warnings:
+            print(f"warning: {w}")
     finally:
         store.close()
+    return 0
+
+
+def _audit_feed(cfg: AppConfig, paths: Sequence[Path]) -> int:
+    """Re-parse cached pages (no network) and check field coverage. Exit 1 on any warning."""
+    files = list(paths) or sorted(cfg.placsp.cache_dir.glob("*.atom"))
+    pages = [parse_page(f.read_bytes()) for f in files]
+    result = audit(pages, cfg.placsp.audit_max_missing)
+    print(f"{len(files)} cached pages: {result.report()}")
+    return 1 if result.warnings else 0
 
 
 def _line(s: Screening) -> str:
@@ -114,6 +133,10 @@ def main(
     )
     ingest.add_argument("--today", type=date.fromisoformat, default=None)
     ingest.add_argument("--refresh", action="store_true", help="re-download today's head page")
+    audit_feed = sub.add_parser(
+        "audit-feed", help="re-parse cached feed pages and check how complete the fields are"
+    )
+    audit_feed.add_argument("pages", nargs="*", type=Path, help="default: every cached page")
     inbox = sub.add_parser("inbox", help="open tenders that pass the deterministic rules")
     inbox.add_argument("--today", type=date.fromisoformat, default=None)
     inbox.add_argument("--no-go", action="store_true", help="also list IT tenders the rules drop")
@@ -123,10 +146,12 @@ def main(
         print(f"spent ${budget.spent():.4f} of ${budget.CAP_USD}")
         return 0
     cfg = cfg or load_config()
+    if args.command == "audit-feed":
+        return _audit_feed(cfg, args.pages)
     today = args.today or datetime.now(MADRID).date()
     if args.command == "ingest":
         with client or httpx.Client(follow_redirects=True) as c:
-            _ingest(cfg, today, args.days, args.refresh, c)
+            return _ingest(cfg, today, args.days, args.refresh, c)
     elif args.command == "inbox":
         now = (
             datetime.now(MADRID)
