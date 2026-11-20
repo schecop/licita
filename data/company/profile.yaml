@@ -17,6 +17,8 @@ solvency:
   annual_turnover_eur: 1400000     # best of the last 3 years
   staff: 18
   similar_contracts_last_3y_eur: 900000
+  professional_liability_insurance_eur: 600000   # seguro de responsabilidad civil profesional
+  net_worth_eur: 420000                          # patrimonio neto at the last year end
   certifications: [ISO 9001, ISO 27001]
   ens_level: medio                 # Esquema Nacional de Seguridad
   classification: null             # no state classification (only required above thresholds)

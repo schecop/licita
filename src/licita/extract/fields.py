@@ -20,6 +20,34 @@ from typing import Any
 NUMBER_OR_NULL: dict[str, Any] = {"type": ["number", "null"]}
 
 
+def _solvency_schema(kinds: list[str]) -> dict[str, Any]:
+    """Solvency as the pliego states it (ADR-0003): criteria, each a kind with a fixed amount, an
+    amount relative to the contract (multiple x base) or none; any_of for "o bien"."""
+    return {
+        "type": ["object", "null"],
+        "properties": {
+            "any_of": {"type": "boolean"},
+            "criteria": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "kind": {"type": "string", "enum": kinds},
+                        "amount_eur": NUMBER_OR_NULL,
+                        "multiple": NUMBER_OR_NULL,
+                        "base": {
+                            "type": ["string", "null"],
+                            "enum": ["annual_value", "estimated_value", "budget", None],
+                        },
+                    },
+                    "required": ["kind", "amount_eur", "multiple", "base"],
+                },
+            },
+        },
+        "required": ["any_of", "criteria"],
+    }
+
+
 @dataclass(frozen=True)
 class Field:
     name: str
@@ -54,6 +82,12 @@ GROUPS: tuple[FieldGroup, ...] = (
                 NUMBER_OR_NULL,
                 "Plazo de ejecución inicial en meses, sin contar prórrogas.",
             ),
+            Field(
+                "max_duration_months",
+                NUMBER_OR_NULL,
+                "Duración máxima en meses incluidas todas las prórrogas posibles (24 meses con "
+                "una prórroga de 12 son 36). Igual a la inicial si no hay prórrogas.",
+            ),
         ),
     ),
     FieldGroup(
@@ -70,25 +104,40 @@ GROUPS: tuple[FieldGroup, ...] = (
     ),
     FieldGroup(
         "solvency",
-        "solvencia económica financiera volumen anual de negocios solvencia técnica profesional "
-        "servicios similares importe certificación ISO esquema nacional de seguridad clasificación",
+        "solvencia económica financiera volumen anual de negocios seguro responsabilidad "
+        "patrimonio neto solvencia técnica profesional servicios similares importe certificación "
+        "ISO esquema nacional de seguridad clasificación",
         (
             Field(
-                "min_annual_turnover_eur",
-                NUMBER_OR_NULL,
-                "Volumen anual de negocios mínimo exigido como solvencia económica, en euros.",
+                "economic_solvency",
+                _solvency_schema(["turnover", "insurance", "net_worth", "other"]),
+                "Solvencia económica y financiera tal como la exige el pliego: un criterio por "
+                "medio (volumen anual de negocios = turnover, seguro de responsabilidad "
+                "civil/indemnización = insurance, patrimonio neto = net_worth, otro = other). "
+                "amount_eur si el pliego da la cifra en euros (aunque también dé la fórmula); si "
+                "solo da una fórmula, multiple y base ('1,5 veces el valor anual medio' = 1.5 y "
+                "annual_value; 'igual o superior al valor estimado' = 1 y estimated_value; sobre "
+                "el presupuesto de licitación = budget). any_of true si basta con uno de los "
+                "criterios ('o bien'). null con cita si el pliego dice que no se exige.",
             ),
             Field(
-                "min_similar_services_eur",
-                NUMBER_OR_NULL,
-                "Importe mínimo de servicios similares exigido como solvencia técnica, en euros "
-                "(el importe tal como lo pide el pliego, anual o acumulado).",
+                "technical_solvency",
+                _solvency_schema(["similar_services", "works_list", "staff", "other"]),
+                "Solvencia técnica o profesional tal como la exige el pliego: un criterio por "
+                "medio (importe de servicios similares = similar_services, relación de trabajos "
+                "sin importe mínimo = works_list, titulación o medios personales = staff, otro = "
+                "other), con amount_eur o multiple y base como en la solvencia económica. "
+                "any_of true si basta con uno. null con cita si el pliego dice que no se exige.",
             ),
             Field(
                 "certifications",
                 {"type": ["array", "null"], "items": {"type": "string"}},
-                "Certificaciones exigidas (ISO, ENS con su categoría...). Lista vacía con cita si "
-                "el pliego dice que no se exigen.",
+                "Certificaciones que el licitador debe poseer y acreditar para poder participar "
+                "(solvencia técnica o requisito de admisión): ISO, ENS con su categoría... No "
+                "incluyas normas o buenas prácticas que el adjudicatario deba seguir al ejecutar "
+                "el contrato ('adoptará estándares tales como...'), ni certificaciones que solo "
+                "puntúan como criterio de adjudicación. Lista vacía con cita si el pliego dice "
+                "que no se exigen.",
             ),
             Field(
                 "classification",

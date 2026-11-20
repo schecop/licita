@@ -11,7 +11,7 @@ class MissingSecretError(RuntimeError):
 
 
 def load_env(path: Path = Path(".env")) -> None:
-    """Add `.env` entries to the environment; variables already set win."""
+    """Add `.env` entries to the environment; variables already set (and not empty) win."""
     if not path.exists():
         return
     for line in path.read_text(encoding="utf-8").splitlines():
@@ -19,7 +19,8 @@ def load_env(path: Path = Path(".env")) -> None:
         if not line or line.startswith("#") or "=" not in line:
             continue
         key, value = line.split("=", 1)
-        os.environ.setdefault(key.strip(), value.strip().strip("\"'"))
+        if not os.environ.get(key.strip()):  # an empty shell variable must not hide the file's
+            os.environ[key.strip()] = value.strip().strip("\"'")
 
 
 def require(name: str) -> str:

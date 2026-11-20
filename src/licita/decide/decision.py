@@ -97,13 +97,16 @@ async def model_decision(
     request: str,
     chunks: Mapping[str, Chunk],
     threshold: float,
+    max_tokens: int = 2048,
 ) -> Outcome:
     response = await llm.complete(
         system=system,
         messages=[UserMessage(request)],
         tools=[ToolSpec(TOOL, "Registra la decisión go / no_go con su cita.", SCHEMA)],
-        max_tokens=1000,
+        max_tokens=max_tokens,
     )
+    if response.stop == "max_tokens":  # a cut tool call may still hold "go" and nothing else
+        return Outcome(None, "review", "model", "the decision was cut at max_tokens")
     call = next((c for c in response.tool_calls if c.name == TOOL), None)
     args = call.arguments if call and not call.bad_arguments else {}
     if args.get("decision") not in ("go", "no_go"):

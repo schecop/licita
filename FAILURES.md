@@ -4,7 +4,7 @@ Every real failure, newest first: symptom, how it was found (trace, eval, test),
 
 **Classes:** ingestion · PDF parsing · retrieval · extraction · rules · model · labels · front
 
-**Summary by class:** ingestion 3 · rules 3 · PDF parsing 1
+**Summary by class:** ingestion 3 · rules 3 · PDF parsing 1 · extraction 2 · model 2
 
 <!-- Template:
 ## YYYY-MM-DD · <short title>
@@ -14,6 +14,34 @@ Every real failure, newest first: symptom, how it was found (trace, eval, test),
 - **Fix:**
 - **Regression test / eval case:**
 -->
+
+## 2026-11-20 · Solvency schema assumed a fixed amount: half the tenders to review
+- **Symptom:** after the max_tokens fix, 5 of 9 tenders still went to review with "solvency not established" (turnover and similar services `not_found`).
+- **Found by:** the saved analyses (`runs/analyses/`): in all 5, retrieval had the solvency clause in the top 8, the call was not cut, and the model answered null, correctly. The pliegos said "≥ the valor estimado", "1,5 times the annual value", "a positive net worth", "an insurance of 75.000 €", or a list of works with no amount.
+- **Root cause (extraction):** the schema had two euro amounts, written from the synthetic pliego; any other form of solvency had nowhere to go, and "no number" was read as "not established". Also, one model copied the chunk id with its brackets ("[CUADRO:p6:1]").
+- **Fix:** ADR-0003: solvency as the pliego states it (criteria with kind, fixed or relative amount, any_of), relative amounts computed by code from the feed and `max_duration_months`, insurance and net worth compared with the profile. Brackets around a chunk id are stripped. Re-run on the 9: no tender to review for unread solvency except one (Jaume I, technical solvency), 3 no-gos with their reasons, 5 go to review on confidence.
+- **Regression test / eval case:** `test_solvency_as_real_pliegos_state_it`, `test_alternatives_and_cumulative_criteria` (tests/test_citations.py), the bracket case in `test_field_checks`.
+
+## 2026-11-20 · A verified quote, misread: false no-go on Correos
+- **Symptom:** Correos (Documentum maintenance) got an automatic no-go by code: "requires ISO/IEC 27036 ... ISO/IEC 42001: not held". The pliego (p. 57) says the contractor "adoptará buenas prácticas y estándares ... tales como ISO/IEC 27001, ISO/IEC 27036, ISO/IEC 42001 y el NIST AI RMF": how to run the contract, not certifications needed to bid.
+- **Found by:** first run with the real model on 9 tenders; checking the one automatic no-go against the pliego.
+- **Root cause (extraction):** the `certifications` field asked for "certificaciones exigidas" without saying exigidas for what. The quote was literal, so the citation check passed: it proves the text is in the pliego, not that it was read right.
+- **Fix:** the field now asks only for certifications the bidder must hold and prove to take part (solvency or admission), and excludes execution standards and certifications that only score points. The real check is the evals: Correos goes into the labelled set as a "go/review, not no-go by code" case, and code no-gos get their own precision measure.
+- **Regression test / eval case:** eval case (to label): 20934973. No unit test: the misreading is the model's.
+
+## 2026-11-20 · Model answers cut at max_tokens read as "not found" and as an uncited "go"
+- **Symptom:** on the first real run, 7 of 48 calls stopped at the output cap (1,500 extraction, 1,000 decision). The cut extraction calls lost their tool call or part of it, so fields that are in the pliego came out `not_found`; both cut decisions parsed as "go" with an empty reason and no citation.
+- **Found by:** the cost ledger (`output_tokens` equal to the cap) while asking why so many tenders went to review.
+- **Root cause (model):** caps set by guess, and the response's `stop` reason ignored.
+- **Fix:** caps in config (`analysis.extraction_max_tokens` 4,096, `decision_max_tokens` 2,048); a call cut at max_tokens marks its whole group `truncated` (never `not_found`), and a cut decision goes to review saying so. Every analysis is now saved to `runs/analyses/<entry>.json` with the calls' inputs and outputs, so a field's check can be traced to what the model saw and said.
+- **Regression test / eval case:** `test_an_extraction_cut_at_max_tokens_is_truncated_not_not_found`, `test_a_decision_cut_at_max_tokens_goes_to_review`, `test_the_whole_analysis_is_saved_as_json` (tests/test_graph.py).
+
+## 2026-11-20 · The CLI never read .env: model keys missing although set
+- **Symptom:** `licita analyse` stopped at the first model call with "ANTHROPIC_API_KEY is not set" while the key was in `.env`; it also printed a Python traceback.
+- **Found by:** first real run; Pablo confirmed the key was there.
+- **Root cause (model):** `licita.env.load_env` existed and was never called; tests never noticed because they never need a key.
+- **Fix:** `main()` loads `.env` before any command (shell variables win unless empty); a missing key prints one line and exits 1, and what was spent is still recorded.
+- **Regression test / eval case:** `test_the_cli_loads_dotenv_before_any_command`, `test_dotenv_fills_missing_and_empty_variables_but_not_set_ones` (tests/test_env.py).
 
 ## 2026-11-20 · Section headings wrong on the first real pliego
 - **Symptom:** on the first real PCAP (Zona Franca de Barcelona, 71 pages), 208 of 251 chunks were labelled "ANEXO IX > 10. TOTAL PBL": the table of contents set "ANEXO IX" pages before any annex, a budget table row ("10 TOTAL PBL con IVA 369.581,19 €") passed for clause 10, and the real headings ("11. Criterios de adjudicación", "F.2. Solvencia") were never detected. In the PPT, 109 of 113 chunks had no section. A signature stamp ("Docusign Envelope ID: ...") was glued to the first paragraph of every page.

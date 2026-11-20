@@ -139,20 +139,29 @@ def _nodes(d: Deps) -> dict[str, Node]:
         raws = await asyncio.gather(
             *(
                 extract_group(
-                    d.extraction, d.extraction_prompt, g, s["hits"][g.name], d.extraction_mode
+                    d.extraction,
+                    d.extraction_prompt,
+                    g,
+                    s["hits"][g.name],
+                    d.extraction_mode,
+                    a.extraction_max_tokens,
                 )
                 for g in GROUPS
             )
         )
         fields = {
-            f.name: check_field(f.name, raw.get(f.name), s["chunks"])
+            f.name: (
+                FieldResult(f.name, None, "truncated", None)
+                if raw is None
+                else check_field(f.name, raw.get(f.name), s["chunks"])
+            )
             for g, raw in zip(GROUPS, raws, strict=True)
             for f in g.fields
         }
         return {"fields": fields}
 
     async def requirements(s: TenderState) -> dict[str, Any]:
-        reqs = check_requirements(s["fields"], d.profile)
+        reqs = check_requirements(s["fields"], d.profile, s["tender"])
         out: dict[str, Any] = {"requirements": reqs}
         failed = [r for r in reqs if r.verdict == "fail"]
         missing = unestablished(s["fields"])
@@ -173,7 +182,12 @@ def _nodes(d: Deps) -> dict[str, Node]:
             d.profile, s["tender"].title, s["fields"], s["requirements"], cited
         )
         outcome = await model_decision(
-            d.decision, d.decision_prompt, request, {c.id: c for c in cited}, a.cascade_threshold
+            d.decision,
+            d.decision_prompt,
+            request,
+            {c.id: c for c in cited},
+            a.cascade_threshold,
+            a.decision_max_tokens,
         )
         return {"outcome": outcome}
 
@@ -300,6 +314,53 @@ async def stream(
             langfuse__trace__output=json.dumps(summarise("end", {"outcome": o}), default=str)
         )
     yield Analysis(TenderState(**state), events, calls)  # type: ignore[typeddict-item]
+
+
+def record(a: Analysis) -> dict[str, Any]:
+    """The whole analysis as JSON-ready data: what each node decided, each field with its check
+    and citation, the chunks each query returned, and every model call with what it saw and
+    said. Saved per tender (runs/analyses/) to debug a run and to label from."""
+    s = a.state
+
+    def cite(c: Citation | None) -> dict[str, Any] | None:
+        return None if c is None else {"chunk": c.chunk_id, "page": c.page, "quote": c.quote}
+
+    o = a.outcome
+    return {
+        "entry_id": s["tender"].entry_id,
+        "title": s["tender"].title,
+        "outcome": {
+            "decision": o.decision,
+            "route": o.route,
+            "by": o.decided_by,
+            "reason": o.reason,
+            "confidence": o.confidence,
+            "citation": cite(o.citation),
+        },
+        "events": [{"node": e.node, **e.summary} for e in a.events],
+        "fields": {
+            n: {"value": f.value, "check": f.check, "citation": cite(f.citation)}
+            for n, f in s.get("fields", {}).items()
+        },
+        "requirements": [
+            {"name": r.name, "verdict": r.verdict, "reason": r.reason, "citation": cite(r.citation)}
+            for r in s.get("requirements", [])
+        ],
+        "hits": _hits(s.get("hits", {})),
+        "calls": [
+            {
+                "role": c.role,
+                "model": c.model,
+                "stop": c.stop,
+                "input_tokens": c.input_tokens,
+                "output_tokens": c.output_tokens,
+                "usd": str(c.usd),
+                "input": c.input,
+                "output": c.output,
+            }
+            for c in a.calls
+        ],
+    }
 
 
 async def analyse(d: Deps, tender: Tender, trace: Trace | None = None) -> Analysis:

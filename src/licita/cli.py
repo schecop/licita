@@ -15,7 +15,8 @@ import httpx
 
 from licita import budget
 from licita.config import AppConfig, load_config
-from licita.graph import Deps, Event, stream
+from licita.env import MissingSecretError, load_env
+from licita.graph import Deps, Event, record, stream
 from licita.llm.factory import LazyLLM
 from licita.llm.metered import Call, Metered
 from licita.placsp.audit import audit
@@ -26,6 +27,8 @@ from licita.retrieval.embed import HashingEmbedder
 from licita.rules import Screening, screen
 from licita.store import Store
 from licita.tracing import LangfuseExporter, Trace
+
+ANALYSES = Path("runs/analyses")  # one JSON per tender analysed (gitignored, like runs/)
 
 
 def _ingest(
@@ -173,6 +176,12 @@ def _analyse(cfg: AppConfig, entry: str, now: datetime) -> int:
             async for item in stream(deps, tender, trace):
                 if isinstance(item, Event):
                     print_event(item)
+                else:
+                    out = ANALYSES / f"{tender.entry_id.rsplit('/', 1)[-1]}.json"
+                    out.parent.mkdir(parents=True, exist_ok=True)
+                    data = json.dumps(record(item), ensure_ascii=False, indent=1, default=str)
+                    out.write_text(data, "utf-8")
+                    print(f"  saved {out}")
             if exporter and trace:
                 await exporter.export(trace)
         finally:
@@ -181,8 +190,13 @@ def _analyse(cfg: AppConfig, entry: str, now: datetime) -> int:
             if exporter:
                 await exporter.aclose()
 
-    asyncio.run(run())
-    spent = budget.record(calls, run_id=f"analyse-{entry}")
+    try:
+        asyncio.run(run())
+    except MissingSecretError as e:  # LazyLLM: only raised once a model is really needed
+        print(f"error: {e}")
+        return 1
+    finally:
+        spent = budget.record(calls, run_id=f"analyse-{entry}")
     print(f"{len(calls)} model calls, ${spent:.4f}")
     return 0
 
@@ -218,6 +232,7 @@ def main(
     inbox.add_argument("--today", type=date.fromisoformat, default=None)
     inbox.add_argument("--no-go", action="store_true", help="also list IT tenders the rules drop")
     args = parser.parse_args(argv)
+    load_env()  # keys for the models and Langfuse; variables already set in the shell win
     # Windows consoles and pipes default to cp1252: Spanish text and ✓ would crash print()
     if isinstance(sys.stdout, io.TextIOWrapper):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")

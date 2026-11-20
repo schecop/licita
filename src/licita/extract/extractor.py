@@ -55,8 +55,9 @@ async def extract_group(
     hits: Sequence[Hit],
     mode: Literal["tool", "json"] = "tool",
     max_tokens: int = 1500,
-) -> dict[str, Any]:
-    """Raw fields as the model returned them; {} if it returned nothing usable."""
+) -> dict[str, Any] | None:
+    """Raw fields as the model returned them; {} if it returned nothing usable; None if the
+    answer was cut at max_tokens (a cut tool call can still parse, with fields missing)."""
     tools = [ToolSpec(TOOL, f"Registra los campos del grupo {group.name}.", tool_schema(group))]
     response = await llm.complete(
         system=system,
@@ -64,6 +65,8 @@ async def extract_group(
         tools=tools if mode == "tool" else (),
         max_tokens=max_tokens,
     )
+    if response.stop == "max_tokens":
+        return None
     if mode == "tool":
         call = next((c for c in response.tool_calls if c.name == TOOL), None)
         return dict(call.arguments) if call and not call.bad_arguments else {}

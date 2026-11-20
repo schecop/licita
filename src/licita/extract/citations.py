@@ -16,7 +16,15 @@ from typing import Any, Literal
 from licita.documents.chunk import Chunk
 from licita.retrieval.text import fold
 
-Check = Literal["verified", "explicit_none", "not_found", "uncited", "unknown_chunk", "bad_quote"]
+Check = Literal[
+    "verified",
+    "explicit_none",
+    "not_found",
+    "uncited",
+    "unknown_chunk",
+    "bad_quote",
+    "truncated",  # the model's answer was cut at max_tokens: nothing it said is used
+]
 
 
 @dataclass(frozen=True)
@@ -60,6 +68,9 @@ def check_field(
 ) -> FieldResult:
     raw = raw or {}
     value, chunk_id, quote = raw.get("value"), raw.get("chunk_id"), raw.get("quote")
+    # the request shows ids as "[PCAP:p6:1]"; models sometimes copy the brackets
+    if isinstance(chunk_id, str):
+        chunk_id = chunk_id.strip().strip("[]").strip()
     if not chunk_id or not quote:
         return FieldResult(name, value, "not_found" if _empty(value) else "uncited", None)
     chunk = chunks.get(chunk_id)

@@ -68,6 +68,10 @@ class AnalysisConfig(_Strict):
     pliegos_dir: Path = Path("data/pliegos")  # <entry number>/*.pdf, downloaded in a browser
     chunk_max_chars: int = Field(default=1200, ge=200)
     top_k: int = Field(default=8, ge=1)  # chunks per field group sent to the model
+    # output token caps: on the first real run 7 of 48 calls hit 1,500 / 1,000 and lost their
+    # tool call (FAILURES.md, 2026-11-20); a cut call is reported as "truncated", never guessed
+    extraction_max_tokens: int = Field(default=4096, ge=256)
+    decision_max_tokens: int = Field(default=2048, ge=256)
     # PLACEHOLDER until the evals: the confidence at which auto-accepted decisions reach >= 95%
     # precision (CLAUDE.md: the threshold comes from the evals, never by eye)
     cascade_threshold: float = Field(default=0.9, ge=0, le=1)

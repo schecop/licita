@@ -22,6 +22,9 @@ class Solvency(_Strict):
     annual_turnover_eur: Decimal
     staff: int
     similar_contracts_last_3y_eur: Decimal
+    # other ways pliegos ask for economic solvency (ADR-0003)
+    professional_liability_insurance_eur: Decimal | None = None
+    net_worth_eur: Decimal | None = None
     certifications: list[str]
     ens_level: str | None
     classification: str | None

@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import re
 import shutil
+from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -24,6 +25,11 @@ from licita.tracing import Trace
 NOW = datetime(2026, 11, 16, 9, 0, tzinfo=MADRID)
 PROFILE = load_profile(Path("data/company/profile.yaml"))
 
+
+def _fixed(kind: str, eur: int) -> dict[str, Any]:
+    return {"kind": kind, "amount_eur": eur, "multiple": None, "base": None}
+
+
 # what a good extraction model answers for the synthetic PCAP: (value, verbatim quote)
 GOOD: dict[str, tuple[Any, str | None]] = {
     "budget_eur": (240000, "El presupuesto base de licitación asciende a 240.000,00 euros"),
@@ -33,8 +39,15 @@ GOOD: dict[str, tuple[Any, str | None]] = {
         "2026-12-15 14:00",
         "hasta las 14:00 horas del día 15 de diciembre de 2026",
     ),
-    "min_annual_turnover_eur": (360000, "por importe igual o superior a 360.000,00 euros"),
-    "min_similar_services_eur": (168000, "sea igual o superior a 168.000,00 euros"),
+    "max_duration_months": (36, "con posibilidad de una prórroga de doce meses"),
+    "economic_solvency": (
+        {"any_of": False, "criteria": [_fixed("turnover", 360000)]},
+        "por importe igual o superior a 360.000,00 euros",
+    ),
+    "technical_solvency": (
+        {"any_of": False, "criteria": [_fixed("similar_services", 168000)]},
+        "sea igual o superior a 168.000,00 euros",
+    ),
     "certifications": (
         ["ISO/IEC 27001", "ENS categoría MEDIA"],
         "deberá disponer de la certificación ISO/IEC 27001 en vigor",
@@ -154,10 +167,10 @@ def test_candidate_with_pliego_gets_a_cited_go_auto_accepted(
         **dict.fromkeys(GOOD, "verified"),
         "classification": "explicit_none",
     }
-    assert f["min_annual_turnover_eur"].citation.page == 2  # type: ignore[union-attr]
+    assert f["economic_solvency"].citation.page == 2  # type: ignore[union-attr]
     assert {r.name: r.verdict for r in a.state["requirements"]} == {
-        "turnover": "pass",
-        "similar_services": "open",  # 900k over 3 years vs 168k: depends on the wording
+        "economic_solvency": "pass",
+        "technical_solvency": "open",  # 900k over 3 years vs 168k a year: depends on the wording
         "certification ISO/IEC 27001": "pass",  # matched by its number
         "certification ENS categoría MEDIA": "pass",  # profile: ENS medio
     }
@@ -196,34 +209,34 @@ def test_an_invented_field_quote_is_caught_and_the_tender_goes_to_review(
     def lying(req: Request) -> LLMResponse:
         response = extractor(GOOD)(req)
         args = response.tool_calls[0].arguments
-        if "min_annual_turnover_eur" in args:  # right chunk, invented figure and quote
-            cid = _cite(req, GOOD["min_annual_turnover_eur"][1])
-            args["min_annual_turnover_eur"] = {
-                "value": 5_000_000,
+        if "economic_solvency" in args:  # right chunk, invented figure and quote
+            cid = _cite(req, GOOD["economic_solvency"][1])
+            args["economic_solvency"] = {
+                "value": {"any_of": False, "criteria": [_fixed("turnover", 5_000_000)]},
                 "chunk_id": cid,
                 "quote": "por importe igual o superior a 5.000.000,00 euros",
             }
         return response  # type: ignore[no-any-return]
 
     a = _run(_deps(cfg, ScriptedLLM([lying] * N), ScriptedLLM([])), policia)
-    assert a.state["fields"]["min_annual_turnover_eur"].check == "bad_quote"
+    assert a.state["fields"]["economic_solvency"].check == "bad_quote"
     # an unverified 5M requirement must not become a code no-go...
-    assert "turnover" not in {r.name for r in a.state["requirements"]}
+    assert "economic_solvency" not in {r.name for r in a.state["requirements"]}
     # ...nor be skipped over: the turnover was not checked, so no model decides
     o = a.outcome
     assert (o.decision, o.route, o.decided_by) == (None, "review", "requirements")
-    assert "min_annual_turnover_eur (bad_quote)" in o.reason
+    assert "economic_solvency (bad_quote)" in o.reason
 
 
 @pytest.mark.usefixtures("with_pliego")
 def test_solvency_not_found_goes_to_review_without_the_decision_model(
     cfg: AppConfig, policia: Tender
 ) -> None:
-    missed = GOOD | {"min_similar_services_eur": (None, None)}  # retrieval or the model missed it
+    missed = GOOD | {"technical_solvency": (None, None)}  # retrieval or the model missed it
     a = _run(_deps(cfg, ScriptedLLM([extractor(missed)] * N), ScriptedLLM([])), policia)
     o = a.outcome
     assert (o.decision, o.route, o.decided_by) == (None, "review", "requirements")
-    assert o.reason.endswith("min_similar_services_eur (not_found)")
+    assert o.reason.endswith("technical_solvency (not_found)")
     assert a.events[-1].node == "requirements"
 
 
@@ -306,3 +319,53 @@ def test_one_trace_per_tender_with_a_span_per_node_and_generations_inside(
     extract_span = next(s for s in trace.spans if s.name == "extract")
     assert sum(g.parent_id == extract_span.span_id for g in gens) == N
     assert "retrieval.hits" in next(s for s in trace.spans if s.name == "retrieve").attributes
+
+
+@pytest.mark.usefixtures("with_pliego")
+def test_an_extraction_cut_at_max_tokens_is_truncated_not_not_found(
+    cfg: AppConfig, policia: Tender
+) -> None:
+    """Regression (first real run): a cut tool call lost its fields, which then looked like
+    "the pliego does not say"."""
+
+    def cut_on_solvency(req: Request) -> LLMResponse:
+        response = extractor(GOOD)(req)
+        if "economic_solvency" in req.tools[0].input_schema["required"]:
+            return replace(response, stop="max_tokens")  # type: ignore[no-any-return]
+        return response  # type: ignore[no-any-return]
+
+    a = _run(_deps(cfg, ScriptedLLM([cut_on_solvency] * N), ScriptedLLM([])), policia)
+    f = a.state["fields"]
+    assert f["economic_solvency"].check == "truncated"
+    assert f["certifications"].check == "truncated"  # the whole group, even fields it sent
+    assert f["budget_eur"].check == "verified"  # other groups are untouched
+    assert (a.outcome.route, a.outcome.decided_by) == ("review", "requirements")
+    assert "economic_solvency (truncated)" in a.outcome.reason
+
+
+@pytest.mark.usefixtures("with_pliego")
+def test_a_decision_cut_at_max_tokens_goes_to_review(cfg: AppConfig, policia: Tender) -> None:
+    """Regression (first real run): a cut decision still parsed as "go" with no reason."""
+
+    def cut(req: Request) -> LLMResponse:
+        response = decider("go", 0.95, "No se exige clasificación empresarial.")(req)
+        return replace(response, stop="max_tokens")  # type: ignore[no-any-return]
+
+    o = _run(_deps(cfg, ScriptedLLM([extractor(GOOD)] * N), ScriptedLLM([cut])), policia).outcome
+    assert (o.decision, o.route) == (None, "review")
+    assert "max_tokens" in o.reason
+
+
+@pytest.mark.usefixtures("with_pliego")
+def test_the_whole_analysis_is_saved_as_json(cfg: AppConfig, policia: Tender) -> None:
+    import json
+
+    from licita.graph import record
+
+    dec = ScriptedLLM([decider("go", 0.95, "No se exige clasificación empresarial.")])
+    a = _run(_deps(cfg, ScriptedLLM([extractor(GOOD)] * N), dec), policia)
+    r = json.loads(json.dumps(record(a), default=str))
+    assert r["outcome"]["decision"] == "go" and r["outcome"]["citation"]["page"] == 2
+    assert r["fields"]["economic_solvency"]["check"] == "verified"
+    assert set(r["hits"]) == {g.name for g in GROUPS}
+    assert [e["node"] for e in r["events"]][-1] == "decide"
