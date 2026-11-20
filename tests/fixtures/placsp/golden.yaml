@@ -1,147 +1,180 @@
-# Golden values read by hand from each tender's PLACSP web page (not from the XML).
-# A key set to null means the page shows nothing for it. Set checked_on when done.
-# deadline: 'YYYY-MM-DD HH:MM' Madrid time.
-# award_criteria: [[start of the description, weight]].
+# Golden values read by hand from each tender's PLACSP web pages, not from the XML: the detail
+# page (status, buyer, budget, valor estimado, deadline, CPV) and, for what it does not show
+# (NUTS, lot budgets, award criteria), the "Anuncio de licitación" HTML linked from it (or the
+# "Anuncio de adjudicación" when there is no licitación notice).
+# A key left out means the pages do not show it; null means they show it as absent.
+# status: the page's label as the CODICE code (Publicada PUB, Anulada ANUL, Resuelta RES...).
+# deadline: 'YYYY-MM-DD HH:MM' Madrid time. award_criteria: [[start of the description, weight]].
+# Read on 2026-11-20; the pages show the tender as it is now, the fixture as it was on ~16 Nov.
+# Spot-checked by a second person on 20913966, 20913952 and 20913994 (amounts without VAT).
 - entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20913966
   why: 'IT candidate (Policía, Opentext): the reference case'
   url: https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&idEvl=RltAOQfSrwKFlFRHfEzEaw%3D%3D
-  checked_on: null
-  status: TODO
-  buyer: TODO
-  budget_eur: TODO
-  estimated_value_eur: TODO
-  deadline: TODO
-  cpvs: TODO
-  nuts: TODO
-  lot_budgets_eur: TODO
-  award_criteria: TODO
+  checked_on: 2026-11-20
+  status: PUB
+  buyer: División Económica y Técnica (Cuerpo Nacional de Policía)
+  budget_eur: 88838.89
+  estimated_value_eur: 177677.78
+  deadline: '2026-12-15 12:00'
+  cpvs: ['72220000']
+  nuts: ES300
+  lot_budgets_eur: []
+  award_criteria:
+    - [Ampliación del servicio de formación sin coste, 4]
+    - [Precio, 45]
+    - [Criterios técnicos de ejecución del servicio, 51]
 - entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20913952
   why: 5 lots with different budgets
   url: https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&idEvl=pbp7tb3yYzXi0Kd8%2Brcp6w%3D%3D
-  checked_on: null
-  status: TODO
-  buyer: TODO
-  budget_eur: TODO
-  estimated_value_eur: TODO
-  deadline: TODO
-  cpvs: TODO
-  nuts: TODO
-  lot_budgets_eur: TODO
-  award_criteria: TODO
+  checked_on: 2026-11-20
+  status: PUB
+  buyer: Alcaldía del Ayuntamiento de Ponteareas
+  budget_eur: 1374545.45
+  estimated_value_eur: 1374545.45
+  deadline: '2026-12-14 23:59'
+  cpvs: ['90919300', '90910000', '90919000']
+  nuts: ES114
+  lot_budgets_eur: [397458.96, 298094.20, 132486.32, 198729.44, 347776.53]
+  award_criteria:
+    - [Bolsa anual de horas adicionales sin coste, 40]
+    - [Precio ofertado por hora de servicio, 50]
+    - [Sistema de gestión ambiental implantado, 10]
 - entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20913957
   why: lots that repeat the whole budget (source quirk), adjudicated
   url: https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&idEvl=lA%2FBM27lFcGdkQsA7ROvsg%3D%3D
-  checked_on: null
-  status: TODO
-  buyer: TODO
-  budget_eur: TODO
-  estimated_value_eur: TODO
-  deadline: TODO
-  cpvs: TODO
-  nuts: TODO
-  lot_budgets_eur: TODO
-  award_criteria: TODO
+  checked_on: 2026-11-20
+  status: ADJ  # page: "Parcialmente Adjudicada"
+  buyer: Banco de España
+  budget_eur: 3140836.56
+  estimated_value_eur: 3140836.56
+  deadline: '2026-10-19 14:00'
+  cpvs: ['30200000', '30237000', '48820000', '50312000', '72514000']
+  nuts: ES300
+  # lot_budgets_eur: not shown (no licitación notice left; the adjudicación notice has no lots)
+  award_criteria:
+    - [Oferta económica, 100]
 - entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20914016
   why: open tender without CPV
   url: https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&idEvl=F7V0LpRPilkZDGvgaZEVxQ%3D%3D
-  checked_on: null
-  status: TODO
-  buyer: TODO
-  budget_eur: TODO
-  estimated_value_eur: TODO
-  deadline: TODO
-  cpvs: TODO
-  nuts: TODO
-  lot_budgets_eur: TODO
-  award_criteria: TODO
+  checked_on: 2026-11-20
+  status: PUB
+  buyer: Junta de Gobierno del Ayuntamiento de Almonte
+  budget_eur: 1340658.50
+  estimated_value_eur: 1340658.50
+  deadline: '2026-12-01 23:59'
+  cpvs: []
+  nuts: ES615
+  lot_budgets_eur: []
+  award_criteria:
+    - [Mejoras sociales de inserción, 20]
+    - [Oferta económica, 40]
+    - [Proyecto de Gestión y Explotación, 40]
 - entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20934361
   why: open tender without documents
   url: https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&idEvl=sN6wHJzuIdGTylGzYmBF9Q%3D%3D
-  checked_on: null
-  status: TODO
-  buyer: TODO
-  budget_eur: TODO
-  estimated_value_eur: TODO
-  deadline: TODO
-  cpvs: TODO
-  nuts: TODO
-  lot_budgets_eur: TODO
-  award_criteria: TODO
+  checked_on: 2026-11-20
+  status: PUB
+  buyer: Alcaldía del Ayuntamiento de Perales del Puerto
+  budget_eur: 50.00
+  estimated_value_eur: 50.00
+  deadline: '2026-11-25 14:32'
+  cpvs: ['55410000']
+  nuts: ES432
+  lot_budgets_eur: []
+  award_criteria:
+    - [OFERTA ECONÓMICA (PRECIO), 100]
 - entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20913951
   why: patrimonial (type 50)
   url: https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&idEvl=zPceztgZ7NdrhBlEHQFSKA%3D%3D
-  checked_on: null
-  status: TODO
-  buyer: TODO
-  budget_eur: TODO
-  estimated_value_eur: TODO
-  deadline: TODO
-  cpvs: TODO
-  nuts: TODO
-  lot_budgets_eur: TODO
-  award_criteria: TODO
+  checked_on: 2026-11-20
+  status: PUB
+  buyer: Alcaldía del Ayuntamiento de Isla Cristina
+  budget_eur: 2000.00
+  estimated_value_eur: 2000.00
+  deadline: '2026-11-30 23:59'
+  cpvs: ['55510000']
+  nuts: ES615
+  lot_budgets_eur: []
+  award_criteria:
+    - [OFERTA ECONÓMICA ANEXO II, 100]
 - entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20913962
   why: works (type 3)
   url: https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&idEvl=Le0i4rnPjnucTfjQf3USOg%3D%3D
-  checked_on: null
-  status: TODO
-  buyer: TODO
-  budget_eur: TODO
-  estimated_value_eur: TODO
-  deadline: TODO
-  cpvs: TODO
-  nuts: TODO
-  lot_budgets_eur: TODO
-  award_criteria: TODO
+  checked_on: 2026-11-20
+  status: PUB
+  buyer: Rectorado de la Universitat Politècnica de València
+  budget_eur: 25170803.68
+  estimated_value_eur: 25170803.68
+  deadline: '2026-12-10 23:59'
+  cpvs: ['45214400']
+  nuts: ES523
+  lot_budgets_eur: []
+  award_criteria:
+    - [Plazo de garantía, 5]
+    - [Precio, 50]
+    - [Memoria Técnica, 45]
 - entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20913968
   why: cancelled (ANUL)
   url: https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&idEvl=t%2B%2BbGIObHiw%2FbjW6njtWLw%3D%3D
-  checked_on: null
-  status: TODO
-  buyer: TODO
-  budget_eur: TODO
-  estimated_value_eur: TODO
-  deadline: TODO
-  cpvs: TODO
-  nuts: TODO
-  lot_budgets_eur: TODO
-  award_criteria: TODO
+  checked_on: 2026-11-20
+  status: ANUL
+  buyer: Junta de Gobierno del Ayuntamiento de Pinoso
+  budget_eur: 342256.20
+  estimated_value_eur: 456341.60
+  deadline: '2026-12-14 23:59'
+  cpvs: ['31527260', '31527200']
+  nuts: ES521
+  lot_budgets_eur: []
+  award_criteria:
+    - [Criterio medio ambiental (vehículos adscritos, 20]
+    - [Gestión de emisiones de efecto invernadero, 10]
+    - [Mejoras, 20]
+    - [Oferta económica, 50]
 - entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20913949
   why: resolved (RES), no deadline
   url: https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&idEvl=uM0VW83eRHE%2B1TMyIiZmzw%3D%3D
-  checked_on: null
-  status: TODO
-  buyer: TODO
-  budget_eur: TODO
-  estimated_value_eur: TODO
-  deadline: TODO
-  cpvs: TODO
-  nuts: TODO
-  lot_budgets_eur: TODO
-  award_criteria: TODO
+  checked_on: 2026-11-20
+  status: RES
+  buyer: Tenencia de Alcaldía Delegada del Área Específica de Servicios Operativos, Régimen Interior, Playas y Fiestas
+  budget_eur: 0.00
+  estimated_value_eur: 1269421.49
+  deadline: null
+  cpvs: ['44210000']
+  nuts: ES617
+  lot_budgets_eur: []
+  award_criteria:
+    - [Precio, 100]
 - entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20913955
   why: Cataluña (NUTS ES51x)
   url: https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&idEvl=1gPFWlDTAS1rSd8H4b2soA%3D%3D
-  checked_on: null
-  status: TODO
-  buyer: TODO
-  budget_eur: TODO
-  estimated_value_eur: TODO
-  deadline: TODO
-  cpvs: TODO
-  nuts: TODO
-  lot_budgets_eur: TODO
-  award_criteria: TODO
+  checked_on: 2026-11-20
+  status: PUB
+  buyer: Presidencia del Consejo de Administración de la Autoridad Portuaria de Barcelona (PORT DE BARCELONA)
+  budget_eur: 175000.00
+  estimated_value_eur: 350000.00
+  deadline: '2026-12-21 12:00'
+  cpvs: ['79410000']
+  nuts: ES511
+  lot_budgets_eur: []
+  award_criteria:
+    - [Criterios evaluables mediante fórmulas distintos del precio, 25]
+    - [Oferta económica, 40]
+    - [Calidad Técnica, 35]
 - entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20913994
   why: award criteria with decimal weights
   url: https://contrataciondelestado.es/wps/poc?uri=deeplink:detalle_licitacion&idEvl=s5arY%2BVJzy%2FjHF5qKI4aaw%3D%3D
-  checked_on: null
-  status: TODO
-  buyer: TODO
-  budget_eur: TODO
-  estimated_value_eur: TODO
-  deadline: TODO
-  cpvs: TODO
-  nuts: TODO
-  lot_budgets_eur: TODO
-  award_criteria: TODO
+  checked_on: 2026-11-20
+  status: PUB
+  buyer: Comité de Contratación de Aguas Municipalizadas de Alicante, Empresa Mixta
+  budget_eur: 1686442.38
+  estimated_value_eur: 3372884.76
+  deadline: '2026-12-14 18:00'
+  cpvs: ['24962000']
+  nuts: ES521
+  lot_budgets_eur: [350338.00, 130110.67, 625399.95, 580593.76]
+  award_criteria:
+    - [Oferta económica., 72.5]
+    - [Otros criterios evaluables mediante fórmula., 2.5]
+    - [Conocimiento de los suministros a prestar., 10]
+    - [Control de calidad., 5]
+    - [Plan de trabajo., 10]

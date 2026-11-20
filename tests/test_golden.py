@@ -51,10 +51,17 @@ def _expected(name: str, v: Any) -> Any:
 
 
 def _same(name: str, actual: Any, expected: Any) -> bool:
-    if name == "award_criteria":  # the page may truncate long descriptions: compare the start
+    if name == "award_criteria":
+        # the golden value may hold only the start of a long description; order carries no
+        # meaning (the notice groups formula and judgement criteria, the XML does not)
+        def by_weight(cs: list[tuple[str, Decimal]]) -> list[tuple[str, Decimal]]:
+            return sorted(cs, key=lambda c: (c[1], c[0]))
+
         return len(actual) == len(expected) and all(
             a_desc.startswith(e_desc) and a_w == e_w
-            for (a_desc, a_w), (e_desc, e_w) in zip(actual, expected, strict=True)
+            for (a_desc, a_w), (e_desc, e_w) in zip(
+                by_weight(actual), by_weight(expected), strict=True
+            )
         )
     return bool(actual == expected)
 
