@@ -35,7 +35,8 @@ def test_layout_line_breaks_are_rejoined_into_paragraphs() -> None:
     )
     assert paragraphs(text) == [
         "El plazo de ejecución será de veinticuatro meses desde la formalización.",
-        "4. SOLVENCIA Los licitadores",
+        "4. SOLVENCIA",  # a heading is a paragraph of its own
+        "Los licitadores",
     ]
 
 
@@ -70,19 +71,79 @@ def test_documents_are_the_pdfs_in_the_tender_folder(tmp_path: Path) -> None:
     entry = "https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20913966"
     assert [p.name for p in local_documents(tmp_path, entry)] == ["PCAP.pdf"]
     assert local_documents(tmp_path, entry + "0") == []
+    # the same file published twice (as PCAP and as PPT) is read once
+    (folder / "PPT.pdf").write_bytes(b"%PDF")
+    (folder / "ANEXO.pdf").write_bytes(b"%PDF-other")
+    assert [p.name for p in local_documents(tmp_path, entry)] == ["ANEXO.pdf", "PCAP.pdf"]
 
 
-def test_headings_are_numbered_upper_case_titles_or_annexes() -> None:
+def test_headings_as_real_pliegos_write_them() -> None:
     from licita.documents.chunk import heading
 
-    assert heading("4. SOLVENCIA ECONÓMICA Y FINANCIERA Los licitadores deberán") == (
+    # clauses, in any case
+    assert heading("4. SOLVENCIA ECONÓMICA Y FINANCIERA") == (
         1,
         "4. SOLVENCIA ECONÓMICA Y FINANCIERA",
     )
-    assert heading("CLÁUSULA 4.2 SOLVENCIA TÉCNICA Se exigirá") == (2, "4.2. SOLVENCIA TÉCNICA")
-    assert heading("ANEXO II. CUADRO RESUMEN Expediente") == (0, "ANEXO II CUADRO RESUMEN")
-    assert heading("1. El objeto del contrato es el servicio") is None  # a numbered sentence
-    assert heading("2. IVA excluido.") is None  # too short to be a title
+    assert heading("11.  Criterios de adjudicación") == (1, "11. Criterios de adjudicación")
+    assert heading("CLÁUSULA 4.2 Solvencia técnica") == (2, "4.2. Solvencia técnica")
+    assert heading("Cláusula 23. Presentación de proposiciones") == (
+        1,
+        "23. Presentación de proposiciones",
+    )
+    assert heading("CLAUSULA SEGUNDA. Órgano de contratación.") == (
+        1,
+        "Clausula segunda. Órgano de contratación.",
+    )
+    assert heading(
+        "CLAUSULA CUARTA. Presupuesto base de licitación y valor estimado del contrato."
+    ) == (1, "Clausula cuarta. Presupuesto base de licitación y valor estimado del contrato.")
+    # parts (Roman, capitals) and the cuadro de características (letters)
+    assert heading("III. DE LA LICITACIÓN") == (0, "III. DE LA LICITACIÓN")
+    assert heading("I. DISPOSICIONES GENERALES") == (0, "I. DISPOSICIONES GENERALES")
+    assert heading("I. Criterios de adjudicación") == (1, "I. Criterios de adjudicación")
+    assert heading("F.2. Solvencia") == (2, "F.2. Solvencia")
+    # annexes: titled in capitals; a mention of one in a clause is not one
+    assert heading("ANEXO II.- OFERTA ECONÓMICA") == (0, "ANEXO II - OFERTA ECONÓMICA")
+    assert heading("ANEXO VIII - Oferta técnica.") is None
+    # table rows, amounts, long lines
+    assert heading("10 TOTAL PBL con IVA 369.581,19 €") is None
+    assert heading("4 13% Gastos Generales") is None
+    assert heading("3. IVA") is None  # too short to be a title
+    assert heading("1. " + "Los licitadores deberán presentar la documentación " * 2) is None
+
+
+def test_a_numbered_sentence_that_runs_on_is_not_a_heading() -> None:
+    page = Page(1, "1. El objeto del contrato es\nel desarrollo de la plataforma de datos.")
+    [chunk] = chunk_pages("PCAP", [page])
+    assert chunk.section == ""
+    assert chunk.text == "1. El objeto del contrato es el desarrollo de la plataforma de datos."
+
+
+def test_running_headers_and_contents_pages_are_dropped() -> None:
+    stamp = "Docusign Envelope ID: B6FCA6A3-E2D4-81D7-817E-705089714482"
+    toc = Page(
+        1,
+        f"{stamp}\nÍndice\n8.  Solvencia ........................ 22\n"
+        "ANEXO II.- OFERTA ECONÓMICA Y RESTO DE CRITERIOS VALORABLES MEDIANTE LA APLICACIÓN DE\n"
+        "FÓRMULAS (SOBRE 3) ........................ 56\n"
+        "ANEXO IX.- CESIÓN DE DATOS PERSONALES ..................... 9\nPágina 1 de 4",
+    )
+    body = [
+        "8. Solvencia\nVolumen anual de negocios mínimo de 300.000 euros.",
+        "Se acreditará con las cuentas anuales depositadas.",
+        "8.1. Medios personales\nUn jefe de proyecto con cinco años de experiencia.",
+    ]
+    pages = [toc] + [Page(n, f"{stamp}\n{t}\nPágina {n} de 4") for n, t in enumerate(body, 2)]
+    chunks = chunk_pages("PCAP", pages)
+    assert [c.page for c in chunks] == [2, 3, 4]  # the contents page gives no chunk
+    assert all("Docusign" not in c.text and "Página" not in c.text for c in chunks)
+    # the sections come from the clauses, not from "ANEXO IX" in the contents
+    assert [c.section for c in chunks] == [
+        "8. Solvencia",
+        "8. Solvencia",
+        "8. Solvencia > 8.1. Medios personales",
+    ]
 
 
 def test_a_chunk_carries_its_section_across_pages_but_quotes_check_its_text_only() -> None:

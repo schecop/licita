@@ -4,7 +4,7 @@ Every real failure, newest first: symptom, how it was found (trace, eval, test),
 
 **Classes:** ingestion · PDF parsing · retrieval · extraction · rules · model · labels · front
 
-**Summary by class:** ingestion 3 · rules 3
+**Summary by class:** ingestion 3 · rules 3 · PDF parsing 1
 
 <!-- Template:
 ## YYYY-MM-DD · <short title>
@@ -14,6 +14,13 @@ Every real failure, newest first: symptom, how it was found (trace, eval, test),
 - **Fix:**
 - **Regression test / eval case:**
 -->
+
+## 2026-11-20 · Section headings wrong on the first real pliego
+- **Symptom:** on the first real PCAP (Zona Franca de Barcelona, 71 pages), 208 of 251 chunks were labelled "ANEXO IX > 10. TOTAL PBL": the table of contents set "ANEXO IX" pages before any annex, a budget table row ("10 TOTAL PBL con IVA 369.581,19 €") passed for clause 10, and the real headings ("11. Criterios de adjudicación", "F.2. Solvencia") were never detected. In the PPT, 109 of 113 chunks had no section. A signature stamp ("Docusign Envelope ID: ...") was glued to the first paragraph of every page.
+- **Found by:** inspecting the chunks and the top hits per field group of the first downloaded pliego, before any model call.
+- **Root cause (PDF parsing):** the heading rule was written from the synthetic pliego (numbered UPPER-CASE titles, no contents page, no running header). Real pliegos write titles in sentence case, open with a contents page and a cuadro de características lettered A-L, and repeat stamps on every page.
+- **Fix:** a heading is a short line on its own (≤ 80 characters, not running on into a lower-case line) with a clause number, a Roman part in capitals, a cuadro letter ("F.2. Solvencia") or an annex titled in capitals; lines with amounts or percentages are table rows. Contents pages (3+ dot-leader lines) and lines repeated on half the pages are dropped. After the fix: 2 of 231 PCAP chunks and 2 of 102 PPT chunks without a section, and the solvency and staffing queries hit "F.2. Solvencia" and "F.3. Adscripción de medios".
+- **Regression test / eval case:** `test_headings_as_real_pliegos_write_them`, `test_a_numbered_sentence_that_runs_on_is_not_a_heading`, `test_running_headers_and_contents_pages_are_dropped` (tests/test_documents.py).
 
 ## 2026-11-20 · Unread solvency could reach an auto-accepted "go"
 - **Symptom:** if the turnover or similar-services requirement did not come out verified (retrieval missed its chunk, the model missed it, or its quote did not check), code compared nothing and raised no fail, so the tender went on to the decision model. The model got `"check": "not_found"` and was asked to lower its confidence, but a "go" at 0.92 would have been auto-accepted over solvency nobody checked.
