@@ -16,6 +16,7 @@ import httpx
 from licita import budget
 from licita.config import AppConfig, load_config
 from licita.env import MissingSecretError, load_env
+from licita.evals.run import run_eval
 from licita.graph import Deps, Event, record, stream
 from licita.llm.factory import LazyLLM
 from licita.llm.metered import Call, Metered
@@ -228,6 +229,15 @@ def main(
     analyse = sub.add_parser("analyse", help="run one tender through the analysis graph")
     analyse.add_argument("entry", help="ATOM entry id, or its number (e.g. 20913966)")
     analyse.add_argument("--today", type=date.fromisoformat, default=None)
+    evaluate = sub.add_parser(
+        "eval", help="score saved analyses against the labels (no model calls)"
+    )
+    evaluate.add_argument(
+        "--split",
+        choices=["dev", "heldout", "all"],
+        default="dev",
+        help="labels to score (default dev; the coach never reads heldout)",
+    )
     inbox = sub.add_parser("inbox", help="open tenders that pass the deterministic rules")
     inbox.add_argument("--today", type=date.fromisoformat, default=None)
     inbox.add_argument("--no-go", action="store_true", help="also list IT tenders the rules drop")
@@ -243,6 +253,8 @@ def main(
     cfg = cfg or load_config()
     if args.command == "audit-feed":
         return _audit_feed(cfg, args.pages)
+    if args.command == "eval":
+        return run_eval(cfg, None if args.split == "all" else args.split)
     today = args.today or datetime.now(MADRID).date()
     if args.command == "ingest":
         with client or httpx.Client(follow_redirects=True) as c:

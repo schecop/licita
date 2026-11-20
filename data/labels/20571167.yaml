@@ -1,0 +1,114 @@
+entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20571167
+title: Desarrollar en la Empresa Municipal de Servicios Funerarios y Cementerios de Madrid S.A. (en adelante
+  SFM) un plan de actividades de seguimiento y resolución de incidencias y actividades periódicas en temas
+  de seguridad de la información (aspectos técnicos, así como de tratamiento) así como el desarrollo de
+  un plan para la certificación de SFM en el Esquema Nacional de Seguridad (en adelante ENS).
+split: heldout
+status: draft
+labelled_by: null
+labelled_on: null
+decision: null
+deciding_clause: null
+fields:
+  economic_solvency:
+    value:
+      any_of: false
+      criteria:
+      - kind: turnover
+        amount_eur: null
+        multiple: 1
+        base: estimated_value
+    where:
+      doc: PCAP
+      page: 9
+      quote: por importe igual o superior al valor estimado del contrato
+    model_check: verified
+    checked: null
+  technical_solvency:
+    value:
+      any_of: false
+      criteria:
+      - kind: similar_services
+        amount_eur: null
+        multiple: 0.7
+        base: annual_value
+    where:
+      doc: PCAP
+      page: 9
+      quote: igual o superior al 70 % de la anualidad media del contrato
+    model_check: verified
+    checked: null
+  certifications:
+    value:
+    - Sistema de Gestión de la Seguridad de la Información, acreditado mediante certificados emitidos
+      por autoridad nacional o internacional competente o, en su defecto, mediante procedimientos para
+      evaluar su solvencia y declaración responsable de mantenerlo durante el contrato
+    where:
+      doc: PCAP
+      page: 11
+      quote: El sistema de Gestión de la Seguridad de la Información se acreditará mediante los correspondientes
+        certificados emitidos por autoridad nacional o internacional competente en la materia
+    model_check: verified
+    checked: null
+  classification:
+    value: null
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - PCAP p11
+    - PCAP p9
+    - PCAP p26
+    - PCAP p10
+  contract_object:
+    value: null
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - PCAP p15
+    - PCAP p11
+    - PCAP p14
+    - PCAP p12
+  required_staff:
+    value:
+    - Coordinación y Gobierno IT (número, titulación y experiencia mínima no constan en los fragmentos)
+    - 'Seguimiento ENS: privacidad, GRC (número, titulación y experiencia mínima no constan en los fragmentos)'
+    - Auditoría (número, titulación y experiencia mínima no constan en los fragmentos)
+    where:
+      doc: PCAP
+      page: 11
+      quote: el equipo de trabajo estará formado, al menos, por los siguientes perfiles
+    model_check: verified
+    checked: null
+  budget_eur:
+    value: 90000
+    where: null
+    model_check: unknown_chunk
+    checked: null
+    look_at:
+    - PCAP p6
+    - PCAP p7
+    - PCAP p23
+    - PCAP p35
+  estimated_value_eur:
+    value: 153000
+    where: null
+    model_check: unknown_chunk
+    checked: null
+    look_at:
+    - PCAP p6
+    - PCAP p7
+    - PCAP p23
+    - PCAP p35
+  max_duration_months:
+    value: 27
+    where: null
+    model_check: unknown_chunk
+    checked: null
+    look_at:
+    - PCAP p6
+    - PCAP p7
+    - PCAP p23
+    - PCAP p35
+notes: ''

@@ -5,7 +5,7 @@ A public-tender scout for small companies. Every morning Licita reads the new te
 
 Part of a 4-PoC sprint ("NNN", November 2026): one week, one working product, one lead skill.
 
-- **Week:** 3 (16-22 Nov 2026) · **Budget:** ~22h · **Type:** portfolio build (deployed, React front, full README, demo video, a measured number)
+- **Week:** 3 (16-24 Nov 2026, extended to Tue 24) · **Budget:** ~22h · **Type:** portfolio build (deployed, React front, full README, demo video, a measured number)
 - **Lead skill:** multi-step agents (LangGraph) + RAG + MCP
 - **Core skills repeated here:** LangGraph (3rd pass), APIs (ATOM/XML + messy PDFs), real-time (SSE), evals (3rd), the coach (2nd pass, rewritten), observability (3rd), debugging, hybrid RAG (1st full), MCP (3rd), React/TS (1st), AWS deployment
 - **Must scope:** daily PLACSP ingestion; profile matching; LangGraph pipeline (screening → document download → hybrid retrieval → structured extraction → requirement check → go/no-go) with progress streamed over SSE; extraction evals on ~20 hand-labelled tenders; a cascade with a measured threshold and a review inbox; the coach's 2nd pass on the extraction prompt; Langfuse; React + TypeScript front; MCP server; deployed on AWS

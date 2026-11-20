@@ -1,0 +1,113 @@
+entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20957352
+title: Asistencia y apoyo técnico en tareas de administración y gestión informática al personal y concejales
+  del Ayuntamiento de San Fulgencio en el ejercicio de sus funciones.
+split: dev
+status: draft
+labelled_by: null
+labelled_on: null
+decision: null
+deciding_clause: null
+fields:
+  economic_solvency:
+    value:
+      any_of: true
+      criteria:
+      - kind: turnover
+        amount_eur: 35000
+        multiple: null
+        base: null
+      - kind: insurance
+        amount_eur: 100000
+        multiple: null
+        base: null
+    where:
+      doc: PCAP
+      page: 4
+      quote: por importe, al menos, de 35.000 €.
+    model_check: verified
+    checked: null
+  technical_solvency:
+    value:
+      any_of: true
+      criteria:
+      - kind: similar_services
+        amount_eur: 16000
+        multiple: null
+        base: null
+      - kind: staff
+        amount_eur: null
+        multiple: null
+        base: null
+    where:
+      doc: PCAP
+      page: 5
+      quote: El importe anual acumulado en el año de mayor ejecución deberá ser igual o superior a 16.000
+        €.
+    model_check: verified
+    checked: null
+  certifications:
+    value: null
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - PCAP p7
+    - PCAP p5
+    - PCAP p4
+    - PCAP p3
+  classification:
+    value: null
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - PCAP p7
+    - PCAP p5
+    - PCAP p4
+    - PCAP p3
+  contract_object:
+    value: Servicio de asistencia y apoyo técnico en tareas de administración y gestión informática al
+      personal y concejales del Ayuntamiento de San Fulgencio en el ejercicio de sus funciones
+    where:
+      doc: PCAP
+      page: 8
+      quote: contratación del servicio de asistencia y apoyo técnico en tareas de administración y gestión
+        informática al personal y concejales del Ayuntamiento de San Fulgencio en el ejercicio de sus
+        funciones
+    model_check: verified
+    checked: null
+  required_staff:
+    value: null
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - PCAP p17
+    - PCAP p3
+    - PCAP p15
+    - PCAP p7
+  budget_eur:
+    value: 23186.9
+    where:
+      doc: PCAP
+      page: 3
+      quote: la cuantía de 23.186,90 €
+    model_check: verified
+    checked: null
+  estimated_value_eur:
+    value: 46373.8
+    where:
+      doc: PCAP
+      page: 3
+      quote: La cuantía del valor estimado del contrato es de 46.373,80 €.
+    model_check: verified
+    checked: null
+  max_duration_months:
+    value: 24
+    where:
+      doc: PPT
+      page: 2
+      quote: no superará en ningún caso las dos anualidades (1 año de principal + 1 año de prórroga)
+    model_check: verified
+    checked: null
+notes: ''

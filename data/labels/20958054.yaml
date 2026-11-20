@@ -1,0 +1,111 @@
+entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20958054
+title: Apoyo al desarrollo de las actividades del proyecto del prototipo de plataforma digital cloud on
+  premise
+split: dev
+status: draft
+labelled_by: null
+labelled_on: null
+decision: null
+deciding_clause: null
+fields:
+  economic_solvency:
+    value:
+      any_of: false
+      criteria:
+      - kind: turnover
+        amount_eur: 90000
+        multiple: null
+        base: null
+    where:
+      doc: PCAP
+      page: 5
+      quote: La cifra de negocio global del licitador en el mejor ejercicio dentro de los tres últimos
+        deberá ser igual o superior a 90.000 euros al año.
+    model_check: verified
+    checked: null
+  technical_solvency:
+    value: null
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - PCAP p17
+    - PCAP p16
+    - PCAP p5
+    - PCAP p15
+  certifications:
+    value:
+    - Certificación de conformidad con el Esquema Nacional de Seguridad, categoría MEDIA o superior, emitida
+      por entidad acreditada por ENAC
+    - ISO/IEC 33000
+    - FIWARE-Ready
+    where:
+      doc: PCAP
+      page: 5
+      quote: La empresa licitadora debe estar en posesión de la Certificación de conformidad con el Esquema
+        Nacional de Seguridad, conforme al Real Decreto 311/2022, de 3 de mayo, de categoría MEDIA o superior
+    model_check: verified
+    checked: null
+  classification:
+    value: null
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - PCAP p17
+    - PCAP p16
+    - PCAP p5
+    - PCAP p15
+  contract_object:
+    value: null
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - PPT p30
+    - PPT p37
+    - PCAP p10
+    - PPT p17
+  required_staff:
+    value:
+    - 'Especialista sénior de Plataforma Digital y Responsable del Servicio: 1 recurso nominal principal,
+      con dedicación del 60 % de jornada durante la Fase 1 y la comprometida en la oferta para la Fase
+      2; experiencia demostrable de al menos tres (3) años en implantación y operación de plataformas
+      Kubernetes/Docker o cloudnative en entornos productivos, y al menos dos (2) años en responsabilidad
+      de servicios técnicos; titulación no indicada.'
+    - Recurso nominal de respaldo, especialista sénior de plataforma, bases de datos, redes o automatización
+      (número no indicado), sin adscripción permanente, con disponibilidad bajo demanda e incorporación
+      en un máximo de cinco (5) días laborables; titulación no indicada.
+    where: null
+    model_check: unknown_chunk
+    checked: null
+    look_at:
+    - PPT p30
+    - PPT p37
+    - PCAP p10
+    - PPT p17
+  budget_eur:
+    value: 90000
+    where:
+      doc: PCAP
+      page: 3
+      quote: 'Presupuesto base de licitación (IVA excluido): 90.000 €'
+    model_check: verified
+    checked: null
+  estimated_value_eur:
+    value: 90000
+    where:
+      doc: PCAP
+      page: 3
+      quote: 'Valor estimado del contrato (IVA excluido): 90.000 €'
+    model_check: verified
+    checked: null
+  max_duration_months:
+    value: 6
+    where:
+      doc: PCAP
+      page: 3
+      quote: 'Prórrogas: N/A'
+    model_check: verified
+    checked: null
+notes: ''

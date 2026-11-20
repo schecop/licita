@@ -1,0 +1,104 @@
+entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20935452
+title: Renovacion de licencias  y soporte del software de medicion de nivel reputacion en ciberseguridad,
+  bitsight.
+split: dev
+status: draft
+labelled_by: null
+labelled_on: null
+decision: null
+deciding_clause: null
+fields:
+  economic_solvency:
+    value:
+      any_of: true
+      criteria:
+      - kind: turnover
+        amount_eur: null
+        multiple: 1.5
+        base: annual_value
+    where:
+      doc: PCAP
+      page: 13
+      quote: deberá ser al menos una vez y media el valor anual del contrato
+    model_check: verified
+    checked: null
+  technical_solvency:
+    value:
+      any_of: false
+      criteria:
+      - kind: other
+        amount_eur: null
+        multiple: null
+        base: null
+    where:
+      doc: PCAP
+      page: 13
+      quote: la empresa licitadora está en posesión de los permisos y acuerdos necesarios para comercializar
+        los productos solicitados
+    model_check: verified
+    checked: null
+  certifications:
+    value: null
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - PCAP p13
+    - PCAP p12
+    - PCAP p5
+    - PCAP p21
+  classification:
+    value: null
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - PCAP p13
+    - PCAP p12
+    - PCAP p5
+    - PCAP p21
+  contract_object:
+    value: null
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - PCAP p23
+    - PCAP p22
+    - PCAP p21
+    - PCAP p14
+  required_staff:
+    value: null
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - PCAP p23
+    - PCAP p22
+    - PCAP p21
+    - PCAP p14
+  budget_eur:
+    value: 110000
+    where:
+      doc: PCAP
+      page: 4
+      quote: asciende a 110.000,00 € (ciento diez mil euros) IVA excluido
+    model_check: verified
+    checked: null
+  estimated_value_eur:
+    value: 110000
+    where:
+      doc: PCAP
+      page: 4
+      quote: El valor estimado y máximo del contrato es a 110.000,00 € (ciento diez mil euros) IVA excluido.
+    model_check: verified
+    checked: null
+  max_duration_months:
+    value: 36
+    where:
+      doc: PCAP
+      page: 15
+      quote: tendrá una duración de treinta y seis meses
+    model_check: verified
+    checked: null
+notes: ''

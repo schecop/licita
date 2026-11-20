@@ -1,0 +1,104 @@
+entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20967808
+title: Contratación del servicio de especialista responsable de bienestar animal
+split: heldout
+status: draft
+labelled_by: null
+labelled_on: null
+decision: null
+deciding_clause: null
+fields:
+  economic_solvency:
+    value:
+      any_of: false
+      criteria:
+      - kind: insurance
+        amount_eur: 75000
+        multiple: null
+        base: null
+    where:
+      doc: CUADRO
+      page: 6
+      quote: Justificante de la existencia de un seguro de indemnización por riesgos profesionales 1 por
+        importe 75.000 €
+    model_check: verified
+    checked: null
+  technical_solvency:
+    value:
+      any_of: false
+      criteria:
+      - kind: staff
+        amount_eur: null
+        multiple: null
+        base: null
+    where:
+      doc: CUADRO
+      page: 6
+      quote: Título universitario de licenciado, grado, máster o doctor, o equivalentes, en Biología (animal),
+        Medicina, Veterinaria
+    model_check: verified
+    checked: null
+  certifications:
+    value: null
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - CUADRO p6
+    - CUADRO p3
+    - PPT p3
+    - CUADRO p4
+  classification:
+    value: null
+    where:
+      doc: CUADRO
+      page: 6
+      quote: 18. CLASIFICACIÓN No procede
+      waived: true
+    model_check: explicit_none
+    checked: null
+  contract_object:
+    value: Prestación del servicio de Responsable de Bienestar Animal a efectos del cumplimiento del Real
+      Decreto 53/2013, de 1 de febrero, incluyendo las tareas relacionadas con el cumplimiento del Acuerdo
+      de Transparencia en Experimentación Animal (COSCE/EARA).
+    where:
+      doc: PPT
+      page: 1
+      quote: El objeto del presente contrato es la prestación del servicio de Responsable de Bienestar
+        Animal
+    model_check: verified
+    checked: null
+  required_staff:
+    value:
+    - Al menos un coordinador técnico o responsable, integrado en la plantilla propia de la empresa contratista
+      (el fragmento no indica número de titulación ni experiencia mínima).
+    where:
+      doc: CUADRO
+      page: 9
+      quote: deberá designar al menos un coordinador técnico o responsable, integrado en su propia plantilla
+    model_check: verified
+    checked: null
+  budget_eur:
+    value: 59999.76
+    where:
+      doc: CUADRO
+      page: 2
+      quote: 'Importe: 59.999,76 Euros'
+    model_check: verified
+    checked: null
+  estimated_value_eur:
+    value: 89999.64
+    where:
+      doc: CUADRO
+      page: 2
+      quote: 'Valor estimado del contrato: 89.999,64 Euros'
+    model_check: verified
+    checked: null
+  max_duration_months:
+    value: 36
+    where:
+      doc: CUADRO
+      page: 2
+      quote: '8.3. Duración de cada una de las prórrogas: 1 año'
+    model_check: verified
+    checked: null
+notes: ''

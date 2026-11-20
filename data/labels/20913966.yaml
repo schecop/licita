@@ -1,0 +1,108 @@
+entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20913966
+title: Asistencia técnica en tecnología PPM de Opentext  con destino a la Dirección General de la Policía.
+split: heldout
+status: draft
+labelled_by: null
+labelled_on: null
+decision: null
+deciding_clause: null
+fields:
+  economic_solvency:
+    value:
+      any_of: false
+      criteria:
+      - kind: turnover
+        amount_eur: 133258.34
+        multiple: null
+        base: null
+    where:
+      doc: PCAP
+      page: 6
+      quote: por importe igual o superior de 133.258,34 euros impuestos excluidos.
+    model_check: verified
+    checked: null
+  technical_solvency:
+    value:
+      any_of: false
+      criteria:
+      - kind: similar_services
+        amount_eur: 62187.22
+        multiple: null
+        base: null
+      - kind: staff
+        amount_eur: null
+        multiple: null
+        base: null
+    where:
+      doc: PCAP
+      page: 6
+      quote: Deberá ser igual o superior a 62.187,22 euros impuestos excluidos.
+    model_check: verified
+    checked: null
+  certifications:
+    value: null
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - PCAP p6
+    - PCAP p29
+    - PCAP p48
+    - PCAP p7
+  classification:
+    value: null
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - PCAP p6
+    - PCAP p29
+    - PCAP p48
+    - PCAP p7
+  contract_object:
+    value: Prestación de servicios de soporte, evolución, optimización y gobierno funcional de la plataforma
+      OpenText PPM (CONTRATOSPOL).
+    where:
+      doc: PPT
+      page: 16
+      quote: soporte, evolución, optimización y gobierno funcional
+    model_check: verified
+    checked: null
+  required_staff:
+    value:
+    - Coordinador técnico del servicio, integrado en la plantilla de la empresa contratada; número, titulación
+      y experiencia mínima no constan en los fragmentos.
+    - Director técnico (apartado 5.1); número, titulación y experiencia mínima no constan en los fragmentos.
+    where:
+      doc: PCAP
+      page: 8
+      quote: La empresa contratada deberá designar un coordinador técnico integrado en su propia plantilla
+    model_check: verified
+    checked: null
+  budget_eur:
+    value: 88838.89
+    where:
+      doc: PCAP
+      page: 5
+      quote: 'Importe sin impuestos: 88.838,89 €'
+    model_check: verified
+    checked: null
+  estimated_value_eur:
+    value: 177677.78
+    where:
+      doc: PCAP
+      page: 4
+      quote: El importe del mismo asciende a 177.677,78 € IVA no incluido.
+    model_check: verified
+    checked: null
+  max_duration_months:
+    value: null
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - PCAP p5
+    - PCAP p27
+    - PCAP p4
+    - PCAP p31
+notes: ''

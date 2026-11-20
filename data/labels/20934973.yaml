@@ -1,0 +1,108 @@
+entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20934973
+title: Mantenimiento y Soporte para el Gestor Documental “Documentum” y su solución de respaldo y archivado.
+split: heldout
+status: draft
+labelled_by: null
+labelled_on: null
+decision: null
+deciding_clause: null
+fields:
+  economic_solvency:
+    value:
+      any_of: false
+      criteria:
+      - kind: turnover
+        amount_eur: 259366.7
+        multiple: null
+        base: null
+    where:
+      doc: PCAP
+      page: 6
+      quote: Volumen anual de negocios en el ámbito al que se refiere el contrato, referido al mejor ejercicio
+        de los tres últimos, de al menos 259.366,70 €.
+    model_check: verified
+    checked: null
+  technical_solvency:
+    value:
+      any_of: false
+      criteria:
+      - kind: similar_services
+        amount_eur: 181556.69
+        multiple: 0.7
+        base: annual_value
+    where:
+      doc: PCAP
+      page: 7
+      quote: Haber realizado 2 servicios de igual o similar naturaleza que los que constituyen el objeto
+        del contrato en los tres últimos años, cuyo importe anual acumulado en el año de mayor ejecución
+        sea igual o superior al 70 por ciento de la anualidad media del contrato (181.556,69 euros)
+    model_check: verified
+    checked: null
+  certifications:
+    value: null
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - PCAP p6
+    - PCAP p41
+    - PCAP p11
+    - PCAP p7
+  classification:
+    value: null
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - PCAP p6
+    - PCAP p41
+    - PCAP p11
+    - PCAP p7
+  contract_object:
+    value: Contratación de los servicios profesionales para la administración, optimización y adecuación
+      de la plataforma OpenText Documentum y CYA HotBackup o equivalentes, y los de mantenimiento y soporte
+      correspondientes a todo el software de la plataforma
+    where:
+      doc: PCAP
+      page: 3
+      quote: Contratación de los servicios profesionales para la administración, optimización y adecuación
+        de la plataforma OpenText Documentum y CYA HotBackup o equivalentes
+    model_check: verified
+    checked: null
+  required_staff:
+    value:
+    - '1 Consultor / administrador: formación y certificación en Technical Fundamentals, Administration
+      Fundamentals y Partner Support; experiencia de al menos 5 años en Administración de Plataforma Documentum
+      o equivalente'
+    where:
+      doc: PCAP
+      page: 7
+      quote: Experiencia de al menos 5 años en Administración de Plataforma Documentum o equivalente
+    model_check: verified
+    checked: null
+  budget_eur:
+    value: 514868.3
+    where:
+      doc: PCAP
+      page: 6
+      quote: Base imponible del presupuesto base de licitación 514.868,30 €
+    model_check: verified
+    checked: null
+  estimated_value_eur:
+    value: 583575.09
+    where:
+      doc: PCAP
+      page: 39
+      quote: 'El valor estimado del contrato (excluido IVA o impuesto indirecto equivalente): 583.575,09
+        EUROS'
+    model_check: verified
+    checked: null
+  max_duration_months:
+    value: 27
+    where:
+      doc: PCAP
+      page: 39
+      quote: 1 prórroga, de tres meses de duración
+    model_check: verified
+    checked: null
+notes: ''

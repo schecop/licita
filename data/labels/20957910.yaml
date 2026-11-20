@@ -1,0 +1,109 @@
+entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20957910
+title: Continuación del desarrollo de la aplicación de Gestión de Órganos Colegiados (GOC), en virtud
+  del convenio específico de colaboración tecnológica-informática entre las Universidades de Valencia
+  (Estudi General), Politécnica de Valencia, de Alicante, Jaume I de Castellón y Miguel Hernández de Elche.
+split: heldout
+status: draft
+labelled_by: null
+labelled_on: null
+decision: null
+deciding_clause: null
+fields:
+  economic_solvency:
+    value:
+      any_of: true
+      criteria:
+      - kind: net_worth
+        amount_eur: null
+        multiple: null
+        base: null
+      - kind: other
+        amount_eur: null
+        multiple: null
+        base: null
+    where:
+      doc: PCAP
+      page: 5
+      quote: Los licitadores deberán acreditar un patrimonio neto positivo, o bien ratio entre activos
+        y pasivos exigibles superior a la unidad.
+    model_check: verified
+    checked: null
+  technical_solvency:
+    value: null
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - PCAP p12
+    - PCAP p13
+    - PCAP p32
+    - PCAP p5
+  certifications:
+    value: null
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - PCAP p12
+    - PCAP p13
+    - PCAP p32
+    - PCAP p5
+  classification:
+    value: null
+    where:
+      doc: PCAP
+      page: 12
+      quote: Para los contratos de servicios no será exigible la clasificación
+      waived: true
+    model_check: explicit_none
+    checked: null
+  contract_object:
+    value: null
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - PCAP p23
+    - PCAP p6
+    - PCAP p24
+    - PCAP p7
+  required_staff:
+    value:
+    - 'Un programador senior, como mínimo, con los conocimientos técnicos indicados en la solvencia técnica
+      (número mínimo: 1; titulación y experiencia mínima no constan en el fragmento)'
+    - 'Un coordinador técnico o responsable, integrado en la plantilla de la empresa contratista (número
+      mínimo: 1; titulación y experiencia no constan)'
+    where:
+      doc: PCAP
+      page: 6
+      quote: como mínimo un programador senior que pueda aportar los conocimientos a nivel técnico indicados
+        en la solvencia técnica
+    model_check: verified
+    checked: null
+  budget_eur:
+    value: 33250
+    where:
+      doc: PCAP
+      page: 3
+      quote: Base imponible (IVA excluido) 33.250,00 €
+    model_check: verified
+    checked: null
+  estimated_value_eur:
+    value: null
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - PCAP p3
+    - PCAP p10
+    - PCAP p4
+    - PCAP p19
+  max_duration_months:
+    value: 12
+    where:
+      doc: PCAP
+      page: 2
+      quote: 'Posibilidad de prórroga: NO'
+    model_check: verified
+    checked: null
+notes: ''

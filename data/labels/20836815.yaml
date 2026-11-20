@@ -1,0 +1,118 @@
+entry_id: https://contrataciondelestado.es/sindicacion/licitacionesPerfilContratante/20836815
+title: Contratación del proyecto de Data Driven para el Consorcio de la Zona Franca de Barcelona.
+split: dev
+status: draft
+labelled_by: null
+labelled_on: null
+decision: null
+deciding_clause: null
+fields:
+  economic_solvency:
+    value:
+      any_of: false
+      criteria:
+      - kind: turnover
+        amount_eur: 229079.25
+        multiple: 1.5
+        base: annual_value
+    where:
+      doc: PCAP
+      page: 8
+      quote: por importe mínimo igual o superior a 1,5 veces el valor anual medio del contrato, esto es,
+        229.079,25 €
+    model_check: verified
+    checked: null
+  technical_solvency:
+    value:
+      any_of: false
+      criteria:
+      - kind: similar_services
+        amount_eur: 106903.65
+        multiple: 0.7
+        base: annual_value
+    where:
+      doc: PCAP
+      page: 8
+      quote: El importe mínimo acumulado sin IVA de dichos trabajos en el mejor de los tres últimos años
+        será igual o superior a 106.903,65 €
+    model_check: verified
+    checked: null
+  certifications:
+    value: []
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - PCAP p8
+    - PCAP p56
+    - PPT p28
+    - PCAP p34
+  classification:
+    value: null
+    where: null
+    model_check: not_found
+    checked: null
+    look_at:
+    - PCAP p8
+    - PCAP p56
+    - PPT p28
+    - PCAP p34
+  contract_object:
+    value: Proyecto Data Driven para el CZFB
+    where:
+      doc: PCAP
+      page: 4
+      quote: La contratación del proyecto Data Driven para el CZFB se va a realizar conjuntamente
+    model_check: verified
+    checked: null
+  required_staff:
+    value:
+    - 'Project Manager (1 perfil): formación universitaria en tecnologías de la información o ámbito equivalente;
+      experiencia mínima de 5 años en dirección de proyectos tecnológicos, de los cuales al menos 2 en
+      proyectos con participación de la Administración Pública.'
+    - 'Business Analyst (número no indicado en el pliego): formación universitaria en tecnologías de la
+      información o ámbito equivalente; experiencia mínima de 3 años en análisis de negocio y desarrollo
+      de soluciones de Business Intelligence de inicio a fin.'
+    - 'Data Engineer (número no indicado en el pliego): formación universitaria en tecnologías de la información
+      o ámbito equivalente; experiencia mínima de 3 años en desarrollo de pipelines y procesos de datos
+      en entornos de producción.'
+    - 'Cloud Engineer (número no indicado en el pliego): formación universitaria en tecnologías de la
+      información o ámbito equivalente; experiencia mínima de 3 años en administración de infraestructura
+      cloud y automatización de despliegues.'
+    - 'Data Arquitect (número no indicado en el pliego): formación universitaria en tecnologías de la
+      información o ámbito equivalente; experiencia mínima de 5 años en arquitectura de datos, con al
+      menos 2 proyectos acreditados de integración de datos multiorganizacional.'
+    - 'Data Governance Lead (número no indicado en el pliego): formación universitaria en tecnologías
+      de la información o ámbito equivalente; experiencia mínima de 5 años en gobierno del dato o protección
+      de datos, con experiencia acreditada.'
+    where:
+      doc: PCAP
+      page: 10
+      quote: Experiencia mínima de 5 años en dirección de proyectos tecnológicos
+    model_check: verified
+    checked: null
+  budget_eur:
+    value: 305439
+    where:
+      doc: PCAP
+      page: 5
+      quote: TOTAL 255.000,00 € 50.439,00 € 305.439,00 €
+    model_check: verified
+    checked: null
+  estimated_value_eur:
+    value: 503076.4
+    where:
+      doc: PCAP
+      page: 6
+      quote: VALOR ESTIMADO TOTAL EN CIFRAS   503.076,40 €
+    model_check: verified
+    checked: null
+  max_duration_months:
+    value: 60
+    where:
+      doc: PCAP
+      page: 7
+      quote: La duración máxima del contrato será de cinco (5) años.
+    model_check: verified
+    checked: null
+notes: ''
