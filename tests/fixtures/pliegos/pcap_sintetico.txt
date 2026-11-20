@@ -1,0 +1,28 @@
+PLIEGO DE CLÁUSULAS ADMINISTRATIVAS PARTICULARES (SINTÉTICO, SOLO PARA TESTS)
+
+Expediente: TEST-2026-001. Servicio de desarrollo y mantenimiento de un cuadro de mando de datos abiertos.
+
+1. OBJETO DEL CONTRATO
+El objeto del contrato es el servicio de desarrollo, evolución y soporte de la plataforma de analítica de datos del organismo, con código CPV 72200000.
+
+2. PRESUPUESTO BASE DE LICITACIÓN Y VALOR ESTIMADO
+El presupuesto base de licitación asciende a 240.000,00 euros, IVA excluido. El valor estimado del contrato, incluidas las posibles prórrogas, es de 480.000,00 euros.
+
+3. PLAZO DE EJECUCIÓN
+El plazo de ejecución será de veinticuatro (24) meses desde la formalización, con posibilidad de una prórroga de doce meses.
+Los licitadores se comprometerán a adscribir a la ejecución del contrato un equipo mínimo formado por un jefe de proyecto con cinco años de experiencia y dos desarrolladores.
+--- página ---
+4. SOLVENCIA ECONÓMICA Y FINANCIERA
+Los licitadores deberán acreditar un volumen anual de negocios, en el ámbito al que se refiere el contrato, referido al mejor ejercicio dentro de los tres últimos disponibles, por importe igual o superior a 360.000,00 euros.
+
+5. SOLVENCIA TÉCNICA O PROFESIONAL
+Se exigirá una relación de los principales servicios de igual o similar naturaleza realizados en los últimos tres años, cuyo importe anual acumulado en el año de mayor ejecución sea igual o superior a 168.000,00 euros.
+Además, la empresa deberá disponer de la certificación ISO/IEC 27001 en vigor y cumplir el Esquema Nacional de Seguridad en categoría MEDIA.
+No se exige clasificación empresarial.
+--- página ---
+6. CRITERIOS DE ADJUDICACIÓN
+Criterios evaluables mediante fórmulas: oferta económica, hasta 60 puntos.
+Criterios sujetos a juicio de valor: memoria técnica y metodología de trabajo, hasta 40 puntos.
+
+7. PRESENTACIÓN DE OFERTAS
+Las proposiciones se presentarán a través de la Plataforma de Contratación del Sector Público hasta las 14:00 horas del día 15 de diciembre de 2026.

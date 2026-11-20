@@ -79,6 +79,13 @@ class Store:
         rows = self.db.execute(sql + " order by updated_utc desc", args).fetchall()
         return [Tender.model_validate_json(r[0]) for r in rows]
 
+    def get(self, entry: str) -> Tender | None:
+        """By full ATOM entry id or by its last part (the number in the PLACSP URL)."""
+        row = self.db.execute(
+            "select data from tenders where entry_id = ? or entry_id like ?", (entry, f"%/{entry}")
+        ).fetchone()
+        return Tender.model_validate_json(row[0]) if row else None
+
     def newest(self) -> datetime | None:
         """The latest update already stored: where an incremental ingest can stop."""
         row = self.db.execute("select max(updated_utc) from tenders").fetchone()

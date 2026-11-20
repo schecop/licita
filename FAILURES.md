@@ -4,7 +4,7 @@ Every real failure, newest first: symptom, how it was found (trace, eval, test),
 
 **Classes:** ingestion · PDF parsing · retrieval · extraction · rules · model · labels · front
 
-**Summary by class:** ingestion 3 · rules 1
+**Summary by class:** ingestion 3 · rules 3
 
 <!-- Template:
 ## YYYY-MM-DD · <short title>
@@ -14,6 +14,20 @@ Every real failure, newest first: symptom, how it was found (trace, eval, test),
 - **Fix:**
 - **Regression test / eval case:**
 -->
+
+## 2026-11-20 · Unread solvency could reach an auto-accepted "go"
+- **Symptom:** if the turnover or similar-services requirement did not come out verified (retrieval missed its chunk, the model missed it, or its quote did not check), code compared nothing and raised no fail, so the tender went on to the decision model. The model got `"check": "not_found"` and was asked to lower its confidence, but a "go" at 0.92 would have been auto-accepted over solvency nobody checked.
+- **Found by:** walking through the graph node by node with Pablo (what happens when the LLM misses a field that is in the pliego?). No real run hit it yet.
+- **Root cause (rules):** a missing field was treated as "no requirement to fail" instead of "requirement unknown"; the safety net was a prompt instruction, which depends on the model obeying it.
+- **Fix:** `unestablished()` in `licita.decide.requirements`: if economic or technical solvency is not `verified`/`explicit_none`, the `requirements` node sends the tender to review by code, naming the field and its check. A cited plain fail still wins (no-go). Same pass: ENS compared by category against the profile, chunks carry their section heading, a `scope` group (object, required staff) feeds the decision.
+- **Regression test / eval case:** `test_solvency_not_found_goes_to_review_without_the_decision_model`, `test_an_invented_field_quote_is_caught_and_the_tender_goes_to_review` (tests/test_graph.py), `test_solvency_not_read_from_the_pliego_is_unestablished` (tests/test_citations.py).
+
+## 2026-11-18 · Two certifications showed as one in the progress and the trace
+- **Symptom:** the first full graph run printed `requirements: {..., "certification": "open"}` for a pliego that asks for ISO/IEC 27001 (held: pass) and ENS categoría MEDIA (open). The pass had disappeared.
+- **Found by:** manual run of the graph on the synthetic pliego (the test had even asserted the collapsed value, with a comment "last one wins").
+- **Root cause (rules):** every certification check was named `certification`, and the summary (CLI, SSE events, trace spans) is a dict keyed by name. The decision prompt got the full list, so the model saw both; a person reading the trace or the review screen would not.
+- **Fix:** one requirement per certification, named after it (`certification ISO/IEC 27001`).
+- **Regression test / eval case:** `test_candidate_with_pliego_gets_a_cited_go_auto_accepted` asserts both entries; `test_a_certification_the_company_lacks_is_a_plain_fail` (tests/test_citations.py).
 
 ## 2026-11-18 · A maintenance page would have been cached as the day's feed
 - **Symptom:** PLACSP went into maintenance and answered every request, the ATOM feed included, with `200 OK` and a 187-byte HTML error page from its firewall. That page is well-formed XML, so `parse_page` read it as an empty feed page: 0 entries, no `next` link, walk "complete". `licita ingest` would have cached it as `<today>-head.atom`, and every later ingest that day would have read the error page from the cache. The new audit did not flag it either (no open tenders, no shares to compute).

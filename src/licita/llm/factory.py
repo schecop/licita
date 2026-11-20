@@ -6,13 +6,14 @@ holds its key, and (Chat Completions only) what the output-token limit field is 
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from decimal import Decimal
 
 from licita.config import ModelChoice
 from licita.env import require
 from licita.llm.anthropic import AnthropicClient
-from licita.llm.base import LLMClient
+from licita.llm.base import LLMClient, LLMResponse, Message, ToolSpec
 from licita.llm.openai_compat import OpenAICompatClient
 
 
@@ -59,6 +60,35 @@ def build_llm(choice: ModelChoice) -> LLMClient:
         max_tokens_field=p.max_tokens_field,
         options=choice.options,
     )
+
+
+class LazyLLM:
+    """Builds the real client on the first call. A run that never reaches a model (a feed
+    no-go, no documents) needs no key and cannot spend."""
+
+    def __init__(self, choice: ModelChoice) -> None:
+        self.choice = choice
+        self.provider = choice.provider
+        self.model = choice.model
+        self._inner: LLMClient | None = None
+
+    async def complete(
+        self,
+        *,
+        system: str,
+        messages: Sequence[Message],
+        tools: Sequence[ToolSpec] = (),
+        max_tokens: int = 1024,
+    ) -> LLMResponse:
+        if self._inner is None:
+            self._inner = build_llm(self.choice)
+        return await self._inner.complete(
+            system=system, messages=messages, tools=tools, max_tokens=max_tokens
+        )
+
+    async def aclose(self) -> None:
+        if self._inner is not None:
+            await self._inner.aclose()
 
 
 def cost_usd(choice: ModelChoice, input_tokens: int, output_tokens: int) -> Decimal:

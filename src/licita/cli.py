@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
+import io
+import json
+import sys
 from collections.abc import Sequence
 from datetime import date, datetime, time, timedelta
 from pathlib import Path
@@ -11,12 +15,17 @@ import httpx
 
 from licita import budget
 from licita.config import AppConfig, load_config
+from licita.graph import Deps, Event, stream
+from licita.llm.factory import LazyLLM
+from licita.llm.metered import Call, Metered
 from licita.placsp.audit import audit
 from licita.placsp.feed import MADRID, parse_page
 from licita.placsp.fetch import FeedFetcher, NotAFeedError
 from licita.profile import load_profile
+from licita.retrieval.embed import HashingEmbedder
 from licita.rules import Screening, screen
 from licita.store import Store
+from licita.tracing import LangfuseExporter, Trace
 
 
 def _ingest(
@@ -113,6 +122,71 @@ def _inbox(cfg: AppConfig, now: datetime, show_no_go: bool) -> None:
         print(f"\n(+ {others} outside the profile's CPV codes, not listed)")
 
 
+def print_event(e: Event) -> None:
+    s = dict(e.summary)  # a copy: the event itself stays whole
+    o = s.pop("outcome", None)
+    detail = json.dumps(s, ensure_ascii=False, default=str) if s else ""
+    print(f"  ✓ {e.node:15} {detail}")
+    if o:
+        print(f"  → {o['decision'] or 'sin decisión'} ({o['route']}, por {o['by']}): {o['reason']}")
+
+
+def _analyse(cfg: AppConfig, entry: str, now: datetime) -> int:
+    """One tender through the graph with the models in config. Paid calls happen only if the
+    tender passes the rules and has documents in `analysis.pliegos_dir`; the estimate is printed
+    and checked against the cap first."""
+    store = Store(cfg.placsp.db_path)
+    try:
+        tender = store.get(entry)
+    finally:
+        store.close()
+    if tender is None:
+        print(f"no tender {entry} in the store (run `licita ingest`)")
+        return 1
+    calls: list[Call] = []
+    roles = {}
+    for role in ("extraction", "decision"):
+        choice = cfg.llm[role]
+        roles[role] = Metered(
+            LazyLLM(choice), role, choice.usd_per_mtok_in, choice.usd_per_mtok_out, calls
+        )
+    prices = {r: m.prices for r, m in roles.items()}
+    print(budget.check(budget.estimate(1, prices)))
+    print(tender.title[:90])
+    print(tender.buyer or "")
+    print("warning: embeddings = hashing (bag of words) until the retrieval comparison picks one")
+    deps = Deps(
+        cfg,
+        load_profile(cfg.rules.profile_path),
+        roles["extraction"],
+        roles["decision"],
+        HashingEmbedder(),
+        now,
+        extraction_mode=cfg.llm["extraction"].structured_output,
+        calls=calls,
+    )
+    exporter = LangfuseExporter.from_env()
+    trace = Trace("tender", tender_id=tender.entry_id) if exporter else None
+
+    async def run() -> None:
+        try:
+            async for item in stream(deps, tender, trace):
+                if isinstance(item, Event):
+                    print_event(item)
+            if exporter and trace:
+                await exporter.export(trace)
+        finally:
+            for m in roles.values():
+                await m.aclose()
+            if exporter:
+                await exporter.aclose()
+
+    asyncio.run(run())
+    spent = budget.record(calls, run_id=f"analyse-{entry}")
+    print(f"{len(calls)} model calls, ${spent:.4f}")
+    return 0
+
+
 def main(
     argv: Sequence[str] | None = None,
     client: httpx.Client | None = None,
@@ -137,10 +211,16 @@ def main(
         "audit-feed", help="re-parse cached feed pages and check how complete the fields are"
     )
     audit_feed.add_argument("pages", nargs="*", type=Path, help="default: every cached page")
+    analyse = sub.add_parser("analyse", help="run one tender through the analysis graph")
+    analyse.add_argument("entry", help="ATOM entry id, or its number (e.g. 20913966)")
+    analyse.add_argument("--today", type=date.fromisoformat, default=None)
     inbox = sub.add_parser("inbox", help="open tenders that pass the deterministic rules")
     inbox.add_argument("--today", type=date.fromisoformat, default=None)
     inbox.add_argument("--no-go", action="store_true", help="also list IT tenders the rules drop")
     args = parser.parse_args(argv)
+    # Windows consoles and pipes default to cp1252: Spanish text and ✓ would crash print()
+    if isinstance(sys.stdout, io.TextIOWrapper):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
     if args.command == "budget":
         print(f"spent ${budget.spent():.4f} of ${budget.CAP_USD}")
@@ -152,6 +232,11 @@ def main(
     if args.command == "ingest":
         with client or httpx.Client(follow_redirects=True) as c:
             return _ingest(cfg, today, args.days, args.refresh, c)
+    elif args.command == "analyse":
+        now = (
+            datetime.now(MADRID) if args.today is None else datetime.combine(today, time(9), MADRID)
+        )
+        return _analyse(cfg, args.entry, now)
     elif args.command == "inbox":
         now = (
             datetime.now(MADRID)

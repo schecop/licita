@@ -36,7 +36,7 @@ class Usage:
 # (docs/model-research.md); correct them from the ledger as soon as real calls exist
 PER_TENDER: dict[str, Usage] = {
     "screening": Usage(1, 1500, 100),
-    "extraction": Usage(4, 12000, 800),
+    "extraction": Usage(5, 12000, 800),  # one call per field group (licita.extract.fields)
     "decision": Usage(1, 6000, 600),
 }
 

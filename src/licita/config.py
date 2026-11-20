@@ -62,10 +62,22 @@ class RulesConfig(_Strict):
     min_days_to_deadline: int = Field(default=5, ge=0)
 
 
+class AnalysisConfig(_Strict):
+    """The graph over one tender's pliegos: chunking, retrieval, cascade."""
+
+    pliegos_dir: Path = Path("data/pliegos")  # <entry number>/*.pdf, downloaded in a browser
+    chunk_max_chars: int = Field(default=1200, ge=200)
+    top_k: int = Field(default=8, ge=1)  # chunks per field group sent to the model
+    # PLACEHOLDER until the evals: the confidence at which auto-accepted decisions reach >= 95%
+    # precision (CLAUDE.md: the threshold comes from the evals, never by eye)
+    cascade_threshold: float = Field(default=0.9, ge=0, le=1)
+
+
 class AppConfig(_Strict):
     llm: dict[str, ModelChoice]
     placsp: PlacspConfig = PlacspConfig()
     rules: RulesConfig = RulesConfig()
+    analysis: AnalysisConfig = AnalysisConfig()
 
 
 def load_config(path: Path = Path("config/local.yaml")) -> AppConfig:
